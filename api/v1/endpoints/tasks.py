@@ -7,7 +7,7 @@ from fastapi.exceptions import HTTPException
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from schemas.task import Task, TaskCreate
+from schemas.task import Task, TaskCreate, TaskUpdate
 from api.dependencies import SessionDep
 from models.task import Task as TaskModel
 
@@ -15,8 +15,13 @@ from models.task import Task as TaskModel
 router = APIRouter(prefix='/tasks', tags=['tasks'])
 
 
-@router.get('/', response_model=list[Task], tags=['tasks'])
-async def get_tasks(
+@router.get(
+    path='/',
+    response_model=list[Task],
+    status_code=status.HTTP_200_OK,
+    tags=['tasks']    
+)
+async def list_tasks(
     db: SessionDep,
     completed: Annotated[
         bool | None, Query(description='Filter by completion status')
@@ -46,7 +51,12 @@ async def get_tasks(
     return tasks
 
 
-@router.get('/{task_id}', response_model=Task, tags=['tasks'])
+@router.get(
+    path='/{task_id}',
+    response_model=Task,
+    status_code=status.HTTP_200_OK,
+    tags=['tasks']
+)
 async def get_task(
     db: SessionDep,
     task_id: int
@@ -62,7 +72,12 @@ async def get_task(
     return task
 
 
-@router.post('/', response_model=Task, tags=['tasks'])
+@router.post(
+    path='/',
+    response_model=Task,
+    status_code=status.HTTP_201_CREATED,    
+    tags=['tasks']
+)
 async def create_task(
     db: SessionDep,
     task: TaskCreate
@@ -73,3 +88,55 @@ async def create_task(
     db.refresh(db_task)
 
     return db_task
+
+
+@router.patch(
+    path='/{task_id}',
+    response_model=Task,
+    status_code=status.HTTP_200_OK,
+    tags=['tasks']
+)
+async def update_task(
+    db: SessionDep,
+    task_id: int,
+    task_in: TaskUpdate
+):
+    task = db.get(TaskModel, task_id)
+
+    update_data = task_in.model_dump(exclude_unset=True)
+
+    if task is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f'Task with id {task_id} not found'
+        )
+    
+    for key, value in update_data.items():
+        setattr(task, key, value)
+    
+    db.commit()
+    db.refresh(task)
+
+    return task
+
+
+@router.delete(
+    path='/tasks/{task_id}',
+    status_code=status.HTTP_204_NO_CONTENT
+)
+async def delete_task(
+    db: SessionDep,
+    task_id: int
+):
+    task = db.get(TaskModel, task_id)
+
+    if task is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f'Task with id {task_id} not found'
+        )
+    
+    db.delete(task)
+    db.commit()
+
+    return None

@@ -26,3 +26,11 @@ class Task(TaskBase):
     model_config = ConfigDict(
         from_attributes=True
     )
+
+
+class TaskUpdate(TaskBase):
+    title: str | None = None
+    description: str | None = None
+    priority: int | None = None
+    due_date: datetime | None = None
+    is_completed: bool | None = None
