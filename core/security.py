@@ -1,21 +1,21 @@
 from typing import Any
 from datetime import datetime, timedelta
 
-from passlib.context import CryptContext
+from pwdlib import PasswordHash
 from jose import jwt
 
 from core.config import Settings
 
 
-pwd_context = CryptContext(schemes=['bcrypt'])
+pwd_hash = PasswordHash.recommended()
 
 
 def verify_password(password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(password, hashed_password)
+    return pwd_hash.verify(password, hashed_password)
 
 
 def get_password_hash(password: str) -> str:
-    return pwd_context.hash(password)
+    return pwd_hash.hash(password)
 
 
 ALGORITHM = 'HS256'
