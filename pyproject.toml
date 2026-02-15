@@ -7,7 +7,7 @@ requires-python = ">=3.14"
 dependencies = [
     "alembic>=1.18.4",
     "fastapi[standard]>=0.128.7",
-    "passlib[bcrypt]>=1.7.4",
+    "pwdlib[argon2]>=0.3.0",
     "python-jose[cryptography]>=3.5.0",
     "python-multipart>=0.0.22",
     "sqlalchemy>=2.0.46",
