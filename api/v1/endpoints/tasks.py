@@ -19,7 +19,6 @@ router = APIRouter(prefix='/tasks', tags=['tasks'])
     path='/',
     response_model=list[Task],
     status_code=status.HTTP_200_OK,
-    tags=['tasks']    
 )
 async def list_tasks(
     db: SessionDep,
@@ -55,7 +54,6 @@ async def list_tasks(
     path='/{task_id}',
     response_model=Task,
     status_code=status.HTTP_200_OK,
-    tags=['tasks']
 )
 async def get_task(
     db: SessionDep,
@@ -76,7 +74,6 @@ async def get_task(
     path='/',
     response_model=Task,
     status_code=status.HTTP_201_CREATED,    
-    tags=['tasks']
 )
 async def create_task(
     db: SessionDep,
@@ -94,7 +91,6 @@ async def create_task(
     path='/{task_id}',
     response_model=Task,
     status_code=status.HTTP_200_OK,
-    tags=['tasks']
 )
 async def update_task(
     db: SessionDep,
