@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from pwdlib import PasswordHash
 from jose import jwt
 
-from core.config import Settings
+from core.config import settings
 
 
 pwd_hash = PasswordHash.recommended()
@@ -37,7 +37,7 @@ def create_access_token(
 
     encoded_jwt = jwt.encode(
         claims=to_encode,
-        key=Settings.SECRET_KEY,
+        key=settings.SECRET_KEY,
         algorithm=ALGORITHM
     )
 
