@@ -8,8 +8,10 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from schemas.task import Task, TaskCreate, TaskUpdate
-from api.dependencies import SessionDep
+from api.dependencies import SessionDep, CurrentUserDep
+
 from models.task import Task as TaskModel
+from models.user import User
 
 
 router = APIRouter(prefix='/tasks', tags=['tasks'])
@@ -22,6 +24,7 @@ router = APIRouter(prefix='/tasks', tags=['tasks'])
 )
 async def list_tasks(
     db: SessionDep,
+    current_user: CurrentUserDep,
     completed: Annotated[
         bool | None, Query(description='Filter by completion status')
     ] = None,
@@ -35,7 +38,7 @@ async def list_tasks(
         int, Query(ge=1, le=100, description='Pagination - max items to return')
     ] = 10
 ):
-    stmt = select(TaskModel)
+    stmt = select(TaskModel).where(TaskModel.owner_id == current_user.id)
 
     if completed is not None:
         stmt = stmt.where(TaskModel.is_completed == completed)
@@ -57,11 +60,12 @@ async def list_tasks(
 )
 async def get_task(
     db: SessionDep,
+    current_user: CurrentUserDep,
     task_id: int
 ):
     task = db.get(TaskModel, task_id)
 
-    if task is None:
+    if task is None or task.owner_id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail='Task not found'
@@ -77,9 +81,10 @@ async def get_task(
 )
 async def create_task(
     db: SessionDep,
+    current_user: CurrentUserDep,
     task: TaskCreate
 ):
-    db_task = TaskModel(**task.model_dump())
+    db_task = TaskModel(**task.model_dump(), owner_id=current_user.id)
     db.add(db_task)
     db.commit()
     db.refresh(db_task)
@@ -94,18 +99,19 @@ async def create_task(
 )
 async def update_task(
     db: SessionDep,
+    current_user: CurrentUserDep,
     task_id: int,
     task_in: TaskUpdate
 ):
     task = db.get(TaskModel, task_id)
 
-    update_data = task_in.model_dump(exclude_unset=True)
-
-    if task is None:
+    if task is None or task.owner_id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f'Task with id {task_id} not found'
         )
+    
+    update_data = task_in.model_dump(exclude_unset=True)
     
     for key, value in update_data.items():
         setattr(task, key, value)
@@ -122,11 +128,12 @@ async def update_task(
 )
 async def delete_task(
     db: SessionDep,
+    current_user: CurrentUserDep,
     task_id: int
 ):
     task = db.get(TaskModel, task_id)
 
-    if task is None:
+    if task is None or task.owner_id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f'Task with id {task_id} not found'
