@@ -1,14 +1,12 @@
 [project]
-name = "todo-api"
+name = "test2-todo-api"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
-    "alembic>=1.18.4",
-    "fastapi[standard]>=0.128.7",
+    "fastapi[standard]>=0.129.2",
     "pwdlib[argon2]>=0.3.0",
     "python-jose[cryptography]>=3.5.0",
-    "python-multipart>=0.0.22",
     "sqlalchemy>=2.0.46",
 ]

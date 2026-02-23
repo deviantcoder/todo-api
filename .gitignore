@@ -5,6 +5,4 @@ dist/
 wheels/
 *.egg-info
 .venv
-.env
-.idea/
 *.db

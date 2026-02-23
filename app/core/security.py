@@ -1,33 +1,33 @@
 from typing import Any
-from datetime import datetime, timedelta, timezone
+
+from datetime import datetime, timezone, timedelta
 
 from pwdlib import PasswordHash
 from jose import jwt
 
-from core.config import settings
+from app.core.config import settings
 
 
 pwd_hash = PasswordHash.recommended()
 
-
-def verify_password(password: str, hashed_password: str) -> bool:
-    return pwd_hash.verify(password, hashed_password)
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
+ALGORITHM = 'HS256'
 
 
 def get_password_hash(password: str) -> str:
     return pwd_hash.hash(password)
 
 
-ALGORITHM = 'HS256'
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+def verify_password(password: str, hash: str) -> bool:
+    return pwd_hash.verify(password, hash)
 
 
 def create_access_token(
     data: dict[str, Any],
     expires_delta: timedelta | None = None
-):
+) -> str:
     to_encode = data.copy()
-    
+
     if expires_delta:
         expire = datetime.now(timezone.utc) + expires_delta
     else:
@@ -35,10 +35,10 @@ def create_access_token(
     
     to_encode.update({'exp': expire})
 
-    encoded_jwt = jwt.encode(
+    access_token = jwt.encode(
         claims=to_encode,
         key=settings.SECRET_KEY,
         algorithm=ALGORITHM
     )
 
-    return encoded_jwt
+    return access_token

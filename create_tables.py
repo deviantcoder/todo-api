@@ -1,8 +1,7 @@
-from core.database import Base, engine
+from app.core.database import Base, engine
 
-from models import task
-from models import user
+from app.models import user, task
 
 
 Base.metadata.create_all(bind=engine)
-print('*** Tables created ***')
+print("*** Tables created ***")
