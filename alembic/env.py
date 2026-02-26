@@ -24,7 +24,11 @@ import sys
 from pathlib import Path
 
 from app.core.config import settings
-from app.models import task, user
+
+from app.models.user import User
+from app.models.task import Task
+from app.models.project import Project
+
 from app.core.database import Base
 
 
@@ -79,7 +83,9 @@ def run_migrations_online() -> None:
 
     with connectable.connect() as connection:
         context.configure(
-            connection=connection, target_metadata=target_metadata
+            connection=connection,
+            target_metadata=target_metadata,
+            render_as_batch=True # required by SQLite
         )
 
         with context.begin_transaction():
