@@ -11,6 +11,7 @@ from jose import jwt, JWTError
 
 from app.models.user import User
 from app.models.task import Task
+from app.models.project import Project
 
 from app.core.database import SessionLocal
 from app.core.config import settings
@@ -85,3 +86,22 @@ def get_user_task(
 
 
 UserTaskDep = Annotated[Task, Depends(get_user_task)]
+
+
+def get_user_project(
+    session: SessionDep,
+    current_user: CurrentUserDep,
+    project_id: int
+) -> Project:
+    project = session.get(Project, project_id)
+
+    if project is None or project.owner != current_user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='Project not found'
+        )
+    
+    return project
+
+
+UserProjectDep = Annotated[Project, Depends(get_user_project)]

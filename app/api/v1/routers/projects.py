@@ -7,7 +7,8 @@ from sqlalchemy import select
 
 from app.api.dependencies import (
     SessionDep,
-    CurrentUserDep
+    CurrentUserDep,
+    UserProjectDep
 )
 
 from app.models.project import Project as ProjectModel
@@ -66,19 +67,7 @@ async def create_project(
     response_model=Project,
     status_code=status.HTTP_200_OK
 )
-async def read_project(
-    session: SessionDep,
-    current_user: CurrentUserDep,
-    project_id: int
-) -> Project:
-    project = session.get(ProjectModel, project_id)
-
-    if project is None or project.owner != current_user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail='Project not found'
-        )
-    
+async def read_project(project: UserProjectDep) -> Project:
     return project
 
 
@@ -89,18 +78,9 @@ async def read_project(
 )
 async def update_project(
     session: SessionDep,
-    current_user: CurrentUserDep,
-    project_id: int,
+    project: UserProjectDep,
     project_data: ProjectUpdate
 ) -> Project:
-    project = session.get(ProjectModel, project_id)
-
-    if project is None or project.owner != current_user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail='Project not found'
-        )
-    
     update_data = project_data.model_dump(exclude_unset=True)
 
     for key, value in update_data.items():
@@ -118,17 +98,8 @@ async def update_project(
 )
 async def delete_project(
     session: SessionDep,
-    current_user: CurrentUserDep,
-    project_id: int
-) -> None:
-    project = session.get(ProjectModel, project_id)
-
-    if project is None or project.owner != current_user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail='Project not found'
-        )
-    
+    project: UserProjectDep
+) -> None:    
     session.delete(project)
     session.commit()
 
