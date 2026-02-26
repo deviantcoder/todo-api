@@ -13,7 +13,7 @@ class ProjectCreate(BaseProject):
 
 
 class ProjectUpdate(BaseModel):
-    title: str | None = Field(default=None, min_length=1, max_digits=200)
+    title: str | None = Field(default=None, min_length=1, max_length=200)
     description: str | None = Field(default=None, min_length=1, max_digits=500)
     is_archived: bool | None = None
 
