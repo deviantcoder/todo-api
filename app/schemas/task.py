@@ -8,6 +8,7 @@ class BaseTask(BaseModel):
     description: str | None = Field(default=None, min_length=1, max_length=500)
     due_date: datetime | None = None
     priority: int = Field(default=3, ge=1, le=5)
+    project_id: int | None = None
 
 
 class Task(BaseTask):

@@ -11,6 +11,7 @@ from app.api.dependencies import (
     UserTaskDep
 )
 from app.models.task import Task as TaskModel
+from app.models.project import Project
 from app.schemas.task import Task, TaskCreate, TaskUpdate
 
 
@@ -54,6 +55,14 @@ async def create_task(
     current_user: CurrentUserDep,
     task_data: TaskCreate
 ) -> Task:
+    if task_data.project_id:
+        project = session.get(Project, task_data.project_id)
+        if project is None or project.owner != current_user:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail='Invalid or unauthorized project'
+            )
+
     task = TaskModel(
         **task_data.model_dump(),
         owner=current_user
