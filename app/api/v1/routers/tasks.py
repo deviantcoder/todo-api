@@ -30,6 +30,7 @@ async def list_tasks(
     priority_le: Annotated[int | None, Query(ge=1, le=5)] = None,
     skip: Annotated[int, Query(ge=0)] = 0,
     limit: Annotated[int, Query(le=100)] = 10,
+    project_id: Annotated[int | None, Query(description='Filter tasks by project')] = None
 ) -> list[Task]:
     stmt = select(TaskModel).where(TaskModel.owner == current_user)
 
@@ -38,6 +39,17 @@ async def list_tasks(
     
     if priority_le is not None:
         stmt = stmt.where(TaskModel.priority <= priority_le)
+
+    if project_id is not None:
+        project = session.get(Project, project_id)
+        
+        if project is None or project.owner != current_user:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail='Invalid or unauthorized project'
+            )
+        
+        stmt = stmt.where(TaskModel.project == project)
     
     stmt = stmt.offset(skip).limit(limit).order_by(TaskModel.created_at.desc())
     tasks = session.scalars(stmt).all()
