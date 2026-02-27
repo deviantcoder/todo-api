@@ -18,8 +18,12 @@ class Task(Base):
     is_completed: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
 
-    owner_id: Mapped[int] = mapped_column(ForeignKey('users.id'), nullable=False, index=True)
+    owner_id: Mapped[int] = mapped_column(
+        ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True
+    )
     owner = relationship('User', back_populates='tasks')
 
-    project_id: Mapped[int | None] = mapped_column(ForeignKey('projects.id'), nullable=True, index=True)
+    project_id: Mapped[int | None] = mapped_column(
+        ForeignKey('projects.id', ondelete='SET NULL'), nullable=True, index=True
+    )
     project = relationship('Project', back_populates='tasks')
