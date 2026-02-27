@@ -131,3 +131,49 @@ async def delete_project(
     session.commit()
 
     return None
+
+
+@router.post(
+    path='/{project_id}/archive',
+    response_model=Project,
+    status_code=status.HTTP_200_OK
+)
+async def archive_project(
+    session: SessionDep,
+    project: UserProjectDep
+):
+    if project.is_archived:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail='Project is already archived'
+        )
+
+    project.is_archived = True
+
+    session.commit()
+    session.refresh(project)
+
+    return project
+
+
+@router.post(
+    path='/{project_id}/unarchive',
+    response_model=Project,
+    status_code=status.HTTP_200_OK
+)
+async def unarchive_project(
+    session: SessionDep,
+    project: UserProjectDep
+):
+    if not project.is_archived:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail='Project is already active'
+        )
+
+    project.is_archived = False
+
+    session.commit()
+    session.refresh(project)
+
+    return project
