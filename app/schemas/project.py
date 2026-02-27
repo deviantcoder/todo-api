@@ -27,3 +27,8 @@ class Project(BaseProject):
     model_config = ConfigDict(
         from_attributes=True
     )
+
+
+class ProjectWithStats(Project):
+    task_count: int = 0
+    open_task_count: int = 0

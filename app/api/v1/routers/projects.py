@@ -3,16 +3,21 @@ from typing import Annotated
 from fastapi import APIRouter, status
 from fastapi.exceptions import HTTPException
 
-from sqlalchemy import select
+from sqlalchemy import select, func
 
 from app.api.dependencies import (
     SessionDep,
     CurrentUserDep,
     UserProjectDep
 )
-
 from app.models.project import Project as ProjectModel
-from app.schemas.project import Project, ProjectCreate, ProjectUpdate
+from app.models.task import Task as TaskModel
+from app.schemas.project import (
+    Project,
+    ProjectCreate,
+    ProjectUpdate,
+    ProjectWithStats
+)
 
 
 router = APIRouter(prefix='/projects', tags=['projects'])
@@ -64,11 +69,33 @@ async def create_project(
 
 @router.get(
     path='/{project_id}',
-    response_model=Project,
+    response_model=ProjectWithStats,
     status_code=status.HTTP_200_OK
 )
-async def read_project(project: UserProjectDep) -> Project:
-    return project
+async def read_project(
+    session: SessionDep,
+    project: UserProjectDep
+) -> ProjectWithStats:
+    task_count = session.scalar(
+        select(func.count(TaskModel.id))
+        .where(
+            TaskModel.project == project
+        )
+    )
+
+    open_task_count = session.scalar(
+        select(func.count(TaskModel.id))
+        .where(
+            TaskModel.project == project,
+            TaskModel.is_completed == False
+        )
+    )
+    
+    return {
+        **Project.model_validate(project).model_dump(),
+        'task_count': task_count,
+        'open_task_count': open_task_count,
+    }
 
 
 @router.patch(
