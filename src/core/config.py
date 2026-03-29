@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     VERSION: str = __version__
 
     DATABASE_URL: str = 'sqlite+aiosqlite:///./todo.db'
+    ALEMBIC_DATABASE_URL: str = 'sqlite:///./todo.db'
 
     SECRET_KEY: str
 
