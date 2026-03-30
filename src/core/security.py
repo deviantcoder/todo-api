@@ -26,7 +26,6 @@ def create_access_token(payload: dict) -> str:
         {
             'exp': datetime.now(timezone.utc) + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES),
             'iat': datetime.now(timezone.utc),
-            'type': 'access',
         }
     )
 
