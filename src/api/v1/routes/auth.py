@@ -35,3 +35,8 @@ async def logout(
     current_user: CurrentUserDep  # noqa
 ) -> None:
     return await service.logout(data.refresh_token)
+
+
+@router.post('/logout-all', status_code=status.HTTP_204_NO_CONTENT)
+async def logout_all(service: AuthServiceDep, current_user: CurrentUserDep) -> None:
+    return await service.logout_all(current_user)
