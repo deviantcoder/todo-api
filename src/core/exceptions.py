@@ -17,3 +17,8 @@ class NotFoundException(AppException):
 class AlreadyExistsException(AppException):
     status_code = status.HTTP_400_BAD_REQUEST
     detail = 'Already exists'
+
+
+class InvalidCredentialsException(AppException):
+    status_code = status.HTTP_401_UNAUTHORIZED
+    detail = 'Invalid credentials'
