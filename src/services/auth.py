@@ -3,14 +3,15 @@ from datetime import datetime, timedelta, timezone
 from src.repos.user import UserRepository
 from src.repos.refresh_token import RefreshTokenRepository
 from src.schemas.user import UserCreate
-from src.schemas.auth import TokenResponse
+from src.schemas.auth import TokenResponse, ChangePasswordRequest
 from src.models.user import User
 from src.models.refresh_token import RefreshToken
 from src.core.exceptions import (
     AlreadyExistsException,
     InvalidCredentialsException,
     TokenRevokedException,
-    TokenExpiredException
+    TokenExpiredException,
+    InvalidOperationException
 )
 from src.core.security import (
     hash_password,
@@ -112,3 +113,15 @@ class AuthService:
             access_token=access_token,
             refresh_token=raw_refresh
         )
+
+    async def change_password(self, user: User, data: ChangePasswordRequest) -> None:
+        if not verify_password(data.password, user.hashed_password):
+            raise InvalidCredentialsException()
+
+        if data.password == data.new_password:
+            raise InvalidOperationException('New password cannot be the same as the current password')
+
+        hashed_pwd = hash_password(data.new_password)
+
+        await self.user_repo.update(user, {'hashed_password': hashed_pwd})
+        await self.token_repo.revoke_all_for_user(user.id)

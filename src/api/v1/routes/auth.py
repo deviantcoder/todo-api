@@ -1,9 +1,18 @@
 from fastapi import APIRouter, status
 
-from src.api.deps.auth import AuthServiceDep, LoginFormDep, CurrentUserDep
+from src.api.deps.auth import (
+    AuthServiceDep,
+    LoginFormDep,
+    CurrentUserDep
+)
 from src.models.user import User
 from src.schemas.user import UserResponse, UserCreate
-from src.schemas.auth import TokenResponse, RefreshRequest, LogoutRequest
+from src.schemas.auth import (
+    TokenResponse,
+    RefreshRequest,
+    LogoutRequest,
+    ChangePasswordRequest
+)
 
 
 router = APIRouter(prefix='/auth', tags=['auth'])
@@ -40,3 +49,12 @@ async def logout(
 @router.post('/logout-all', status_code=status.HTTP_204_NO_CONTENT)
 async def logout_all(service: AuthServiceDep, current_user: CurrentUserDep) -> None:
     return await service.logout_all(current_user)
+
+
+@router.post('/change-password', status_code=status.HTTP_204_NO_CONTENT)
+async def change_password(
+    service: AuthServiceDep,
+    data: ChangePasswordRequest,
+    current_user: CurrentUserDep
+) -> None:
+    return await service.change_password(current_user, data)
