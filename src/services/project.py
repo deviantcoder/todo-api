@@ -41,7 +41,7 @@ class ProjectService:
 
     async def update(self, project_id: UUID, data: ProjectUpdate, user: User) -> Project:
         project = await self._get_project_for_user(project_id, user)
-        return await self.repo.update(project, **data.model_dump(exclude_unset=True))
+        return await self.repo.update(project, data.model_dump(exclude_unset=True))
 
     async def delete(self, project_id: UUID, user: User) -> None:
         project = await self._get_project_for_user(project_id, user)

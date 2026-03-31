@@ -1,7 +1,7 @@
 """empty message
 
 Revision ID: 18ce1193dd72
-Revises: 
+Revises:
 Create Date: 2026-03-31 12:02:09.583196
 
 """
@@ -40,7 +40,7 @@ def upgrade() -> None:
     sa.Column('title', sa.String(length=200), nullable=False),
     sa.Column('description', sa.Text(length=500), nullable=True),
     sa.Column('status', sa.Enum('ACTIVE', 'COMPLETED', name='projectstatus'), nullable=False),
-    sa.Column('due_date', sa.DateTime(timezone=True), nullable=False),
+    sa.Column('due_date', sa.DateTime(timezone=True), nullable=True),
     sa.Column('owner_id', sa.UUID(), nullable=False),
     sa.Column('id', sa.UUID(), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
