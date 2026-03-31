@@ -20,3 +20,4 @@ class User(Base):
 
     refresh_tokens = relationship('RefreshToken', back_populates='owner')
     tasks = relationship('Task', back_populates='owner')
+    projects = relationship('Project', back_populates='owner')

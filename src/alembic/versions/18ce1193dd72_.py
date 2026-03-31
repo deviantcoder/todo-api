@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: dd94ff27e7fe
+Revision ID: 18ce1193dd72
 Revises: 
-Create Date: 2026-03-30 18:23:28.172572
+Create Date: 2026-03-31 12:02:09.583196
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'dd94ff27e7fe'
+revision: str = '18ce1193dd72'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -36,6 +36,20 @@ def upgrade() -> None:
     op.create_index(op.f('ix_users_email'), 'users', ['email'], unique=True)
     op.create_index(op.f('ix_users_id'), 'users', ['id'], unique=False)
     op.create_index(op.f('ix_users_username'), 'users', ['username'], unique=True)
+    op.create_table('projects',
+    sa.Column('title', sa.String(length=200), nullable=False),
+    sa.Column('description', sa.Text(length=500), nullable=True),
+    sa.Column('status', sa.Enum('ACTIVE', 'COMPLETED', name='projectstatus'), nullable=False),
+    sa.Column('due_date', sa.DateTime(timezone=True), nullable=False),
+    sa.Column('owner_id', sa.UUID(), nullable=False),
+    sa.Column('id', sa.UUID(), nullable=False),
+    sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
+    sa.Column('updated_at', sa.DateTime(timezone=True), nullable=False),
+    sa.ForeignKeyConstraint(['owner_id'], ['users.id'], ondelete='CASCADE'),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_index(op.f('ix_projects_id'), 'projects', ['id'], unique=False)
+    op.create_index(op.f('ix_projects_title'), 'projects', ['title'], unique=False)
     op.create_table('refresh_tokens',
     sa.Column('hashed_token', sa.String(), nullable=False),
     sa.Column('expires_at', sa.DateTime(timezone=True), nullable=False),
@@ -56,10 +70,12 @@ def upgrade() -> None:
     sa.Column('priority', sa.Enum('LOW', 'MEDIUM', 'HIGH', name='taskpriority'), nullable=False),
     sa.Column('due_date', sa.DateTime(timezone=True), nullable=True),
     sa.Column('owner_id', sa.UUID(), nullable=False),
+    sa.Column('project_id', sa.UUID(), nullable=True),
     sa.Column('id', sa.UUID(), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), nullable=False),
     sa.ForeignKeyConstraint(['owner_id'], ['users.id'], ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['project_id'], ['projects.id'], ondelete='SET NULL'),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_tasks_id'), 'tasks', ['id'], unique=False)
@@ -76,6 +92,9 @@ def downgrade() -> None:
     op.drop_index(op.f('ix_refresh_tokens_id'), table_name='refresh_tokens')
     op.drop_index(op.f('ix_refresh_tokens_hashed_token'), table_name='refresh_tokens')
     op.drop_table('refresh_tokens')
+    op.drop_index(op.f('ix_projects_title'), table_name='projects')
+    op.drop_index(op.f('ix_projects_id'), table_name='projects')
+    op.drop_table('projects')
     op.drop_index(op.f('ix_users_username'), table_name='users')
     op.drop_index(op.f('ix_users_id'), table_name='users')
     op.drop_index(op.f('ix_users_email'), table_name='users')

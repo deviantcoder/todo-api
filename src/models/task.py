@@ -34,3 +34,6 @@ class Task(Base):
 
     owner_id: Mapped[UUID] = mapped_column(ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
     owner = relationship('User', back_populates='tasks')
+
+    project_id: Mapped[UUID] = mapped_column(ForeignKey('projects.id', ondelete='SET NULL'), nullable=True)
+    project = relationship('Project', back_populates='tasks')
