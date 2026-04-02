@@ -11,6 +11,7 @@ class TaskCreate(BaseModel):
     description: str | None = Field(None, max_length=500)
     priority: TaskPriority = TaskPriority.LOW
     due_date: datetime | None = None
+    project_id: UUID | None = None
 
 
 class TaskUpdate(BaseModel):
@@ -19,6 +20,7 @@ class TaskUpdate(BaseModel):
     status: TaskStatus | None = None
     priority: TaskPriority | None = None
     due_date: datetime | None = None
+    project_id: UUID | None = None
 
 
 class TaskResponse(BaseModel):
@@ -29,6 +31,7 @@ class TaskResponse(BaseModel):
     priority: TaskPriority
     due_date: datetime | None
     owner_id: UUID
+    project_id: UUID | None
     created_at: datetime
     updated_at: datetime
 
