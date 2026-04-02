@@ -7,9 +7,10 @@ from src.repos.project import ProjectRepository
 from src.repos.task import TaskRepository
 from src.schemas.pagination import PagedResponse, PaginationParams
 from src.schemas.task import TaskCreate, TaskResponse, TaskUpdate
+from src.services.base import BaseService
 
 
-class TaskService:
+class TaskService(BaseService[Task, TaskResponse]):
     """
     Task service class
     """
@@ -31,7 +32,7 @@ class TaskService:
 
     async def get_all(self, user: User, pg_params: PaginationParams) -> PagedResponse[TaskResponse]:
         items, total = await self.task_repo.get_all_by_owner(user.id, pg_params.offset, pg_params.limit)
-        return PagedResponse.create(items, total, pg_params)
+        return await self.paginate(items, total, pg_params)
 
     async def get_by_id(self, task_id: UUID, user: User) -> Task:
         return await self._get_task_for_user(task_id, user)
