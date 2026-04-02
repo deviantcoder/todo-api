@@ -33,3 +33,8 @@ class UserResponse(BaseModel):
 class ChangeUsernameRequest(BaseModel):
     password: str
     new_username: str = Field(..., min_length=5, max_length=50)
+
+
+class ChangeEmailRequest(BaseModel):
+    password: str
+    new_email: EmailStr = Field(..., max_length=200)

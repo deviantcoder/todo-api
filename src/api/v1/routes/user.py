@@ -5,7 +5,8 @@ from src.api.deps.auth import CurrentUserDep
 from src.models.user import User
 from src.schemas.user import (
     UserResponse,
-    ChangeUsernameRequest
+    ChangeUsernameRequest,
+    ChangeEmailRequest
 )
 
 
@@ -25,5 +26,14 @@ async def change_username(
     service: UserServiceDep,
     current_user: CurrentUserDep,
     data: ChangeUsernameRequest
-):
+) -> User:
     return await service.change_username(current_user, data)
+
+
+@router.patch('/change-email', response_model=UserResponse)
+async def change_email(
+    service: UserServiceDep,
+    current_user: CurrentUserDep,
+    data: ChangeEmailRequest
+):
+    return await service.change_email(current_user, data)

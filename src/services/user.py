@@ -9,7 +9,7 @@ from src.core.exceptions import (
     AlreadyExistsException
 )
 from src.core.security import verify_password
-from src.schemas.user import ChangeUsernameRequest
+from src.schemas.user import ChangeUsernameRequest, ChangeEmailRequest
 
 
 class UserService:
@@ -44,3 +44,17 @@ class UserService:
             raise AlreadyExistsException('Username is already taken')
 
         return await self.repo.update(user, {'username': data.new_username})
+
+    async def change_email(self, user: User, data: ChangeEmailRequest) -> User:
+        if not verify_password(data.password, user.hashed_password):
+            raise InvalidCredentialsException()
+
+        if data.new_email == user.email:
+            raise InvalidOperationException('New email cannot be the same as the current email')
+
+        existing = await self.repo.get_by_username_or_email(email=data.new_email)
+
+        if existing is not None:
+            raise AlreadyExistsException('Email is already registered')
+
+        return await self.repo.update(user, {'email': data.new_email})
