@@ -6,17 +6,20 @@ from src.api.deps.task import TaskServiceDep
 from src.api.deps.auth import CurrentUserDep
 from src.models.task import Task
 from src.schemas.task import TaskResponse, TaskCreate, TaskUpdate
+from src.schemas.pagination import PagedResponse
+from src.api.deps.pagination import PaginationDep
 
 
 router = APIRouter(prefix='/tasks', tags=['tasks'])
 
 
-@router.get('/', response_model=list[TaskResponse])
+@router.get('/', response_model=PagedResponse[TaskResponse])
 async def get_tasks(
     service: TaskServiceDep,
-    current_user: CurrentUserDep
-) -> list[Task]:
-    return await service.get_all(current_user)
+    current_user: CurrentUserDep,
+    pg_params: PaginationDep
+) -> PagedResponse[TaskResponse]:
+    return await service.get_all(current_user, pg_params)
 
 
 @router.get('/{task_id}', response_model=TaskResponse)

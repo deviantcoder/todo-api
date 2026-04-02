@@ -7,7 +7,8 @@ from src.core.exceptions import (
 from src.models.task import Task
 from src.models.user import User
 from src.repos.task import TaskRepository
-from src.schemas.task import TaskCreate, TaskUpdate
+from src.schemas.task import TaskCreate, TaskUpdate, TaskResponse
+from src.schemas.pagination import PagedResponse, PaginationParams
 
 
 class TaskService:
@@ -29,8 +30,9 @@ class TaskService:
 
         return task
 
-    async def get_all(self, user: User) -> list[Task]:
-        return await self.repo.get_all_by_owner(user.id)
+    async def get_all(self, user: User, pg_params: PaginationParams) -> PagedResponse[TaskResponse]:
+        items, total = await self.repo.get_all_by_owner(user.id, pg_params.offset, pg_params.limit)
+        return PagedResponse.create(items, total, pg_params)
 
     async def get_by_id(self, task_id: UUID, user: User) -> Task:
         return await self._get_task_for_user(task_id, user)
