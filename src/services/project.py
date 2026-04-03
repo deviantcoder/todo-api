@@ -5,7 +5,7 @@ from src.models.project import Project
 from src.models.user import User
 from src.repos.project import ProjectRepository
 from src.schemas.pagination import PagedResponse, PaginationParams
-from src.schemas.project import ProjectCreate, ProjectResponse, ProjectUpdate
+from src.schemas.project import ProjectCreate, ProjectResponse, ProjectUpdate, ProjectFilterParams
 from src.services.base import BaseService
 
 
@@ -28,8 +28,16 @@ class ProjectService(BaseService[Project, ProjectResponse]):
 
         return project
 
-    async def get_all(self, user: User, pg_params: PaginationParams) -> PagedResponse[ProjectResponse]:
-        items, total = await self.repo.get_all_by_owner(user.id, pg_params.offset, pg_params.limit)
+    async def get_all(
+        self,
+        user: User,
+        pg_params: PaginationParams,
+        filters: ProjectFilterParams | None = None
+    ) -> PagedResponse[ProjectResponse]:
+        filters_dict = filters.model_dump(exclude_none=True) if filters else {}
+        items, total = await self.repo.get_all_by_owner(
+            user.id, pg_params.offset, pg_params.limit, filters_dict
+        )
         return await self.paginate(items, total, pg_params)
 
     async def get_by_id(self, project_id: UUID, user: User) -> Project:

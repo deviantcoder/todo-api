@@ -4,7 +4,7 @@ from fastapi import APIRouter, status
 
 from src.api.deps.auth import CurrentUserDep
 from src.api.deps.pagination import PaginationDep
-from src.api.deps.project import ProjectServiceDep
+from src.api.deps.project import ProjectServiceDep, ProjectFiltersDep
 from src.models.project import Project
 from src.schemas.pagination import PagedResponse
 from src.schemas.project import ProjectCreate, ProjectResponse, ProjectUpdate
@@ -16,9 +16,10 @@ router = APIRouter(prefix='/projects', tags=['projects'])
 async def get_projects(
     service: ProjectServiceDep,
     current_user: CurrentUserDep,
-    pg_params: PaginationDep
+    pg_params: PaginationDep,
+    filters: ProjectFiltersDep
 ) -> PagedResponse[ProjectResponse]:
-    return await service.get_all(current_user, pg_params)
+    return await service.get_all(current_user, pg_params, filters)
 
 
 @router.get('/{project_id}', response_model=ProjectResponse)

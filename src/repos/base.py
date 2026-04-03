@@ -45,7 +45,11 @@ class BaseRepository[T]:
         return list(await self.session.scalars(select(self.model)))
 
     async def get_paginated(
-        self, stmt: Select, offset: int, limit: int, filters: dict | None = None
+        self,
+        stmt: Select,
+        offset: int,
+        limit: int,
+        filters: dict[str, Any] | None = None
     ) -> tuple[list[T], int]:
         if filters:
             stmt = self._apply_filters(stmt, filters)
