@@ -1,9 +1,11 @@
 from datetime import datetime
+from enum import StrEnum
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
 from src.models.task import TaskPriority, TaskStatus
+from src.schemas.pagination import SortOrder
 
 
 class TaskCreate(BaseModel):
@@ -38,3 +40,20 @@ class TaskResponse(BaseModel):
     model_config = ConfigDict(
         from_attributes=True
     )
+
+
+class TaskSortField(StrEnum):
+    CREATED_AT = 'created_at'
+    DUE_DATE = 'due_date'
+    STATUS = 'status'
+    PRIORITY = 'priority'
+
+
+class TaskFilterParams(BaseModel):
+    status: TaskStatus | None = None
+    priority: TaskPriority | None = None
+    project_id: UUID | None = None
+    due_date_from: datetime | None = None
+    due_date_to: datetime | None = None
+    sort_by: TaskSortField = TaskSortField.CREATED_AT
+    sort_order: SortOrder = SortOrder.DESC
