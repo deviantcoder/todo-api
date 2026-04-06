@@ -35,12 +35,13 @@ class TestGetById:
             await task_service.get_by_id(uuid4(), user)
 
     async def test_raises_if_not_owner(self, task_repo, task_service: TaskService):
-        user, task = get_user_and_task()
+        _, task = get_user_and_task()
+        other_user = UserFactory.build()
 
         task_repo.get_by_id.return_value = task
 
         with pytest.raises(ForbiddenException):
-            await task_service.get_by_id(task.id, UserFactory.build())
+            await task_service.get_by_id(task.id, other_user)
 
 
 class TestGetAll:
