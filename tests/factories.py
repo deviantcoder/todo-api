@@ -11,6 +11,7 @@ from src.models.user import User
 
 
 class UserFactory(Factory):
+    id = LazyFunction(uuid4)
     username = Sequence(lambda n: f'user_{n}')
     email = Sequence(lambda n: f'johndoe_{n}@gmail.com')
     full_name = 'John Doe'
@@ -22,6 +23,7 @@ class UserFactory(Factory):
 
 
 class TaskFactory(Factory):
+    id = LazyFunction(uuid4)
     title = Sequence(lambda n: f'Test task {n}')
     description = Sequence(lambda n: f'Test task {n} description')
     status = TaskStatus.ACTIVE
@@ -35,6 +37,7 @@ class TaskFactory(Factory):
 
 
 class ProjectFactory(Factory):
+    id = LazyFunction(uuid4)
     title = Sequence(lambda n: f'Test project {n}')
     description = Sequence(lambda n: f'Test project {n} description')
     status = ProjectStatus.ACTIVE
