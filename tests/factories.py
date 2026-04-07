@@ -1,11 +1,12 @@
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from uuid import uuid4
 
 from factory.base import Factory
 from factory.declarations import LazyFunction, Sequence
 
-from src.core.security import hash_password
+from src.core.security import hash_password, hash_refresh_token
 from src.models.project import Project, ProjectStatus
+from src.models.refresh_token import RefreshToken
 from src.models.task import Task, TaskPriority, TaskStatus
 from src.models.user import User
 
@@ -46,3 +47,16 @@ class ProjectFactory(Factory):
 
     class Meta:  # type: ignore
         model = Project
+
+
+REFRESH_TOKEN = 'VTDtrxWiLsgZAUt8bL55pKNgWDNhFl9aF-ppsuD9IQI1W0_kGcr5V1loFb4KBOxSyjlWNhBxDf0O8vxwWFms_A'
+
+
+class RefreshTokenfactory(Factory):
+    id = LazyFunction(uuid4)
+    hashed_token = LazyFunction(lambda: hash_refresh_token(REFRESH_TOKEN))
+    expires_at = LazyFunction(lambda: datetime.now(timezone.utc) + timedelta(days=30))
+    is_revoked = False
+
+    class Meta:  # type: ignore
+        model = RefreshToken
