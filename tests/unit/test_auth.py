@@ -1,4 +1,5 @@
 from unittest.mock import MagicMock
+from datetime import datetime, timezone
 
 import pytest
 
@@ -6,9 +7,12 @@ from src.core.exceptions import (
     AlreadyExistsException,
     InvalidCredentialsException,
     TokenRevokedException,
+    TokenExpiredException
 )
+from src.core.security import hash_refresh_token
 from src.schemas.user import UserCreate
-from tests.factories import UserFactory
+from src.services.auth import AuthService
+from tests.factories import UserFactory, RefreshTokenFactory, REFRESH_TOKEN
 
 USER_PASSWORD = 'pass123'
 
@@ -89,3 +93,54 @@ class TestLogout:
 
         with pytest.raises(TokenRevokedException):
             await auth_service.logout('sometoken')
+
+
+class TestRefresh:
+    async def test_success(self, user_repo, token_repo, auth_service: AuthService):
+        user = UserFactory.build()
+        token = RefreshTokenFactory.build(owner_id=user.id)
+
+        token_repo.get_by_hash.return_value = token
+        user_repo.get_by_id.return_value = user
+
+        result = await auth_service.refresh(REFRESH_TOKEN)
+
+        token_repo.create.assert_called_once()
+        assert result.access_token is not None
+        assert result.refresh_token is not None
+
+    async def test_raises_if_none(self, token_repo, auth_service: AuthService):
+        token_repo.get_by_hash.return_value = None
+
+        with pytest.raises(InvalidCredentialsException):
+            await auth_service.refresh(raw_token='sometoken')
+
+    async def test_raises_if_revoked(self, token_repo, auth_service: AuthService):
+        user = UserFactory.build()
+        token = RefreshTokenFactory.build(owner_id=user.id, is_revoked=True)
+
+        token_repo.get_by_hash.return_value = token
+
+        with pytest.raises(TokenRevokedException):
+            await auth_service.refresh(REFRESH_TOKEN)
+
+    async def test_raises_if_expired(self, token_repo, auth_service: AuthService):
+        user = UserFactory.build()
+        token = RefreshTokenFactory.build(
+            owner_id=user.id,
+            expires_at=datetime(2025, 12, 12, tzinfo=timezone.utc)
+        )
+
+        token_repo.get_by_hash.return_value = token
+
+        with pytest.raises(TokenExpiredException):
+            await auth_service.refresh(REFRESH_TOKEN)
+
+    async def test_raises_if_not_owner(self, user_repo, token_repo, auth_service: AuthService):
+        token = RefreshTokenFactory.build()
+
+        token_repo.get_by_hash.return_value = token
+        user_repo.get_by_id.return_value = None
+
+        with pytest.raises(InvalidCredentialsException):
+            await auth_service.refresh(REFRESH_TOKEN)
