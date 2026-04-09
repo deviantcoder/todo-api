@@ -10,13 +10,15 @@ from src.models.refresh_token import RefreshToken
 from src.models.task import Task, TaskPriority, TaskStatus
 from src.models.user import User
 
+USER_PASSWORD = 'pass123'
+
 
 class UserFactory(Factory[User]):
     id = LazyFunction(uuid4)
     username = Sequence(lambda n: f'user_{n}')
     email = Sequence(lambda n: f'johndoe_{n}@gmail.com')
     full_name = 'John Doe'
-    hashed_password = LazyFunction(lambda: hash_password('pass123'))
+    hashed_password = LazyFunction(lambda: hash_password(USER_PASSWORD))
     is_active = True
 
     class Meta:  # type: ignore
