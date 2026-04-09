@@ -61,8 +61,8 @@ async def user(db_session: AsyncSession) -> User:
 
 
 @pytest.fixture
-async def project(db_session: AsyncSession) -> Project:
-    project = ProjectFactory.build()
+async def project(db_session: AsyncSession, user: User) -> Project:
+    project = ProjectFactory.build(owner_id=user.id)
 
     db_session.add(project)
     await db_session.commit()
