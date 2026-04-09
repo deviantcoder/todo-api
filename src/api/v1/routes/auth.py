@@ -13,7 +13,7 @@ from src.schemas.user import UserCreate, UserResponse
 router = APIRouter(prefix='/auth', tags=['auth'])
 
 
-@router.post('/signup', response_model=UserResponse)
+@router.post('/signup', response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 async def register(service: AuthServiceDep, data: UserCreate) -> User:
     return await service.register(data)
 
