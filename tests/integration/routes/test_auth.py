@@ -1,6 +1,7 @@
 from typing import Any
 
 from httpx import AsyncClient
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.user import User
 from tests.factories import USER_PASSWORD
@@ -175,3 +176,42 @@ class TestLogout:
     async def test_logout_all(self, client: AsyncClient, auth_headers):
         response = await client.post(self.LOGOUT_ALL_URL, headers=auth_headers)
         assert response.status_code == 204
+
+
+class TestChangePassword:
+    URL: str = '/v1/auth/change-password'
+
+    def _get_update_data(self, **kwargs) -> dict[str, str]:
+        return {
+            'password': kwargs.get('password', USER_PASSWORD),
+            'new_password': kwargs.get('new_password', 'updated_password123'),
+        }
+
+    async def test_success(self, user: User, client: AsyncClient, auth_headers):
+        update_data = self._get_update_data()
+        old_hash = user.hashed_password
+
+        response = await client.post(
+            self.URL, json=update_data, headers=auth_headers
+        )
+
+        assert response.status_code == 204
+        assert old_hash != user.hashed_password
+
+    async def test_wrong_password(self, client: AsyncClient, auth_headers):
+        update_data = self._get_update_data(password='somepassword')
+
+        response = await client.post(
+            self.URL, json=update_data, headers=auth_headers
+        )
+
+        assert response.status_code == 401
+
+    async def test_same_password(self, client: AsyncClient, auth_headers):
+        update_data = self._get_update_data(new_password=USER_PASSWORD)
+
+        response = await client.post(
+            self.URL, json=update_data, headers=auth_headers
+        )
+
+        assert response.status_code == 400
