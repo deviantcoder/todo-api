@@ -31,7 +31,7 @@ async def get_project(
     return await service.get_by_id(project_id, current_user)
 
 
-@router.post('/', response_model=ProjectResponse)
+@router.post('/', response_model=ProjectResponse, status_code=status.HTTP_201_CREATED)
 async def create_project(
     service: ProjectServiceDep,
     data: ProjectCreate,
