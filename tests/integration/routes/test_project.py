@@ -1,11 +1,12 @@
-from httpx import AsyncClient
-from src.models.project import Project
-from uuid import uuid4
-from src.models.user import User
-from sqlalchemy.ext.asyncio import AsyncSession
-from tests.factories import UserFactory, ProjectFactory
 from typing import Any
-from src.models.project import ProjectStatus
+from uuid import uuid4
+
+from httpx import AsyncClient
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from src.models.project import Project, ProjectStatus
+from src.models.user import User
+from tests.factories import ProjectFactory, UserFactory
 
 
 class TestGetProjects:
