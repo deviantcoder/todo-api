@@ -1,6 +1,8 @@
 from fastapi import APIRouter, status
+from fastapi.requests import Request
 
 from src.api.deps.auth import AuthServiceDep, CurrentUserDep, LoginFormDep
+from src.core.limiter import limiter
 from src.models.user import User
 from src.schemas.auth import (
     ChangePasswordRequest,
@@ -14,17 +16,29 @@ router = APIRouter(prefix='/auth', tags=['auth'])
 
 
 @router.post('/signup', response_model=UserResponse, status_code=status.HTTP_201_CREATED)
-async def register(service: AuthServiceDep, data: UserCreate) -> User:
+@limiter.limit('10/minute')
+async def register(
+    request: Request,  # noqa
+    service: AuthServiceDep,
+    data: UserCreate
+) -> User:
     return await service.register(data)
 
 
 @router.post('/token', response_model=TokenResponse)
-async def login(service: AuthServiceDep, form_data: LoginFormDep) -> TokenResponse:
+@limiter.limit('5/minute')
+async def login(
+    request: Request,  # noqa
+    service: AuthServiceDep,
+    form_data: LoginFormDep
+) -> TokenResponse:
     return await service.login(form_data.username, form_data.password)
 
 
 @router.post('/refresh', response_model=TokenResponse)
+@limiter.limit('10/minute')
 async def refresh(
+    request: Request,  # noqa
     service: AuthServiceDep,
     data: RefreshRequest,
     current_user: CurrentUserDep  # noqa
@@ -47,7 +61,9 @@ async def logout_all(service: AuthServiceDep, current_user: CurrentUserDep) -> N
 
 
 @router.post('/change-password', status_code=status.HTTP_204_NO_CONTENT)
+@limiter.limit('5/minute')
 async def change_password(
+    request: Request,  # noqa
     service: AuthServiceDep,
     data: ChangePasswordRequest,
     current_user: CurrentUserDep
