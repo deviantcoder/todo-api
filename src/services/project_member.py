@@ -44,11 +44,8 @@ class ProjectMemberService:
         return membership
 
     async def _require_manage_permission(self, project_id: UUID, user: User) -> None:
-        membership = await self._get_membership(project_id, user.id)
         project = await self._get_project(project_id)
-
-        if project.owner_id == user.id:
-            return
+        membership = await self.member_repo.get_membership(project.id, user.id)
 
         if membership is None or not can_manage_members(membership):
             raise ForbiddenException()
@@ -57,8 +54,11 @@ class ProjectMemberService:
         project = await self._get_project(project_id)
         membership = await self.member_repo.get_membership(project.id, current_user.id)
 
-        if membership is None or membership.role == MemberRole.VIEWER:
-            raise ForbiddenException('Only project members can view other members')
+        if membership is None:
+            raise ForbiddenException('Only project members can view member list')
+
+        if membership.role == MemberRole.VIEWER:
+            raise ForbiddenException('Viewers cannot view member list')
 
         return await self.member_repo.get_project_members(project_id)
 
