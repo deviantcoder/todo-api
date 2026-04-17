@@ -1,4 +1,4 @@
-from typing import AsyncGenerator
+from typing import AsyncGenerator, Generator
 
 import pytest
 from httpx import ASGITransport, AsyncClient
@@ -12,6 +12,7 @@ from src.models.project import Project
 from src.models.task import Task
 from src.models.user import User
 from tests.factories import ProjectFactory, TaskFactory, UserFactory
+from src.core.limiter import limiter
 
 TEST_DATABASE_URL = 'sqlite+aiosqlite:///./test.db'
 
@@ -47,6 +48,13 @@ async def client(db_session) -> AsyncGenerator[AsyncClient]:
         yield async_client
 
     app.dependency_overrides.clear()
+
+
+@pytest.fixture(autouse=True)
+def disable_rate_limiting() -> Generator:
+    limiter.enabled = False
+    yield
+    limiter.enabled = True
 
 
 @pytest.fixture
