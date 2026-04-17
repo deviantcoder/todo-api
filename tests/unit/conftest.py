@@ -22,5 +22,5 @@ def task_service(task_repo, project_repo) -> TaskService:
 
 
 @pytest.fixture
-def project_service(project_repo) -> ProjectService:
-    return ProjectService(project_repo)
+def project_service(project_repo, member_repo) -> ProjectService:
+    return ProjectService(project_repo, member_repo)
