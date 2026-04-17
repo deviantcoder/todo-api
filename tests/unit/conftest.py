@@ -4,6 +4,7 @@ from src.services.auth import AuthService
 from src.services.project import ProjectService
 from src.services.task import TaskService
 from src.services.user import UserService
+from src.services.project_member import ProjectMemberService
 
 
 @pytest.fixture
@@ -24,3 +25,8 @@ def task_service(task_repo, project_repo) -> TaskService:
 @pytest.fixture
 def project_service(project_repo, member_repo) -> ProjectService:
     return ProjectService(project_repo, member_repo)
+
+
+@pytest.fixture
+def project_member_service(member_repo, project_repo, user_repo) -> ProjectMemberService:
+    return ProjectMemberService(member_repo, project_repo, user_repo)
