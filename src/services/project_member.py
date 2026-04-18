@@ -76,7 +76,7 @@ class ProjectMemberService:
         member = ProjectMember(
             project_id=project_id,
             user_id=invitee.id,
-            role=MemberRole.MEMBER,
+            role=data.role,
             status=MemberStatus.PENDING
         )
 

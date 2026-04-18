@@ -28,5 +28,5 @@ def project_service(project_repo, member_repo) -> ProjectService:
 
 
 @pytest.fixture
-def project_member_service(member_repo, project_repo, user_repo) -> ProjectMemberService:
+def member_service(member_repo, project_repo, user_repo) -> ProjectMemberService:
     return ProjectMemberService(member_repo, project_repo, user_repo)
