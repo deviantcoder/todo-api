@@ -11,6 +11,7 @@ class InviteMemberRequest(BaseModel):
 
 
 class MemberResponse(BaseModel):
+    id: UUID
     user_id: UUID
     project_id: UUID
     role: MemberRole
