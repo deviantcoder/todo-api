@@ -8,7 +8,7 @@ class BaseService[T, ResponseSchema]:
 
     async def paginate(
         self,
-        items: list[T],
+        items: list[T] | list[ResponseSchema],
         total: int,
         pg_params: PaginationParams
     ) -> PagedResponse[ResponseSchema]:

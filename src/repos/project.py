@@ -1,10 +1,11 @@
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import select, or_
+from sqlalchemy import func, or_, select
 
 from src.models.project import Project
-from src.models.project_member import ProjectMember, MemberStatus
+from src.models.project_member import MemberStatus, ProjectMember
+from src.models.task import Task, TaskStatus
 from src.repos.base import BaseRepository
 
 
@@ -51,3 +52,19 @@ class ProjectRepository(BaseRepository[Project]):
             .distinct()
         )
         return await self.get_paginated(stmt, offset, limit, filters)
+
+    async def get_task_counts(self, project_id: UUID) -> dict[str, int]:
+        active = await self.session.scalar(
+            select(func.count()).where(
+                Task.project_id == project_id,
+                Task.status == TaskStatus.ACTIVE
+            )
+        ) or 0
+        completed = await self.session.scalar(
+            select(func.count()).where(
+                Task.project_id == project_id,
+                Task.status == TaskStatus.COMPLETED
+            )
+        ) or 0
+
+        return {'active': active, 'completed': completed}

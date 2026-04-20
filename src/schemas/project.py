@@ -21,6 +21,11 @@ class ProjectUpdate(BaseModel):
     status: ProjectStatus | None = None
 
 
+class TaskCounts(BaseModel):
+    active: int
+    completed: int
+
+
 class ProjectResponse(BaseModel):
     id: UUID
     title: str
@@ -30,6 +35,7 @@ class ProjectResponse(BaseModel):
     owner_id: UUID
     created_at: datetime
     updated_at: datetime
+    task_counts: TaskCounts | None = None
 
     model_config = ConfigDict(
         from_attributes=True

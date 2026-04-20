@@ -12,6 +12,7 @@ from src.schemas.project import (
     ProjectFilterParams,
     ProjectResponse,
     ProjectUpdate,
+    TaskCounts
 )
 from src.services.base import BaseService
 
@@ -48,6 +49,12 @@ class ProjectService(BaseService[Project, ProjectResponse]):
 
         return project
 
+    async def _attach_counts(self, project: Project) -> ProjectResponse:
+        counts = await self.project_repo.get_task_counts(project.id)
+        response = ProjectResponse.model_validate(project)
+        response.task_counts = TaskCounts(**counts)
+        return response
+
     async def get_all(
         self,
         user: User,
@@ -58,7 +65,8 @@ class ProjectService(BaseService[Project, ProjectResponse]):
         items, total = await self.project_repo.get_accessible_projects(
             user.id, pg_params.offset, pg_params.limit, filters_dict
         )
-        return await self.paginate(items, total, pg_params)
+        projects = [await self._attach_counts(p) for p in items]
+        return await self.paginate(projects, total, pg_params)
 
     async def get_by_id(self, project_id: UUID, user: User) -> Project:
         return await self._get_project_for_user(project_id, user)
