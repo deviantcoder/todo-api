@@ -38,7 +38,7 @@ class TaskService(BaseService[Task, TaskResponse]):
 
         return task
 
-    async def _get_project_access(self, project_id: UUID, user) -> str:
+    async def _get_project_access(self, project_id: UUID, user: User) -> str:
         project = await self.project_repo.get_by_id(project_id)
 
         if project is None:
@@ -57,6 +57,34 @@ class TaskService(BaseService[Task, TaskResponse]):
 
         return 'viewer'
 
+    async def _get_task_and_check_view(self, task_id: UUID, user: User) -> Task:
+        task = await self.task_repo.get_by_id(task_id)
+
+        if task is None:
+            raise NotFoundException('Task not found')
+
+        if task.project_id is None:
+            if task.owner_id != user.id:
+                raise ForbiddenException()
+            return task
+
+        await self._get_project_access(task.project_id, user)
+        return task
+
+    async def _get_task_and_check_edit(self, task_id: UUID, user: User) -> Task:
+        task = await self.task_repo.get_by_id(task_id)
+        if task is None:
+            raise NotFoundException('Task not found')
+
+        if task.owner_id == user.id:
+            return task
+
+        access = self._get_project_access(task.project_id, user)
+        if access == 'viewer':
+            raise ForbiddenException()
+
+        return task
+
     async def get_all(
         self,
         user: User,
@@ -74,24 +102,20 @@ class TaskService(BaseService[Task, TaskResponse]):
         return await self.paginate(items, total, pg_params)
 
     async def get_by_id(self, task_id: UUID, user: User) -> Task:
-        return await self._get_task_for_user(task_id, user)
+        return await self._get_task_and_check_view(task_id, user)
 
     async def create(self, data: TaskCreate, user: User) -> Task:
         if data.project_id:
-            project = await self.project_repo.get_by_id(data.project_id)
-            if not project:
-                raise NotFoundException('Project not found')
-            if project.owner_id != user.id:
-                raise ForbiddenException()
+            await self._get_project_access(data.project_id, user)
 
         task = Task(**data.model_dump(exclude_unset=True), owner_id=user.id)
 
         return await self.task_repo.create(task)
 
     async def update(self, task_id: UUID, data: TaskUpdate, user: User) -> Task:
-        task = await self._get_task_for_user(task_id, user)
+        task = await self._get_task_and_check_edit(task_id, user)
         return await self.task_repo.update(task, data.model_dump(exclude_unset=True))
 
     async def delete(self, task_id: UUID, user: User) -> None:
-        task = await self._get_task_for_user(task_id, user)
+        task = await self._get_task_and_check_edit(task_id, user)
         return await self.task_repo.delete(task)
