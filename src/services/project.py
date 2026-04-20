@@ -29,13 +29,21 @@ class ProjectService(BaseService[Project, ProjectResponse]):
         self.project_repo = project_repo
         self.member_repo = member_repo
 
-    async def _get_project_for_user(self, project_id: UUID, user: User) -> Project:
+    async def _get_project_for_user(self, project_id: UUID, user: User, require_owner: bool = False) -> Project:
         project = await self.project_repo.get_by_id(project_id)
 
         if project is None:
             raise NotFoundException('Project not found')
 
-        if project.owner_id != user.id:
+        if project.owner_id == user.id:
+            return project
+
+        if require_owner:
+            raise ForbiddenException()
+
+        membership = await self.member_repo.get_membership(project.id, user.id)
+
+        if membership is None or membership.status != MemberStatus.ACCEPTED:
             raise ForbiddenException()
 
         return project
@@ -71,9 +79,9 @@ class ProjectService(BaseService[Project, ProjectResponse]):
         return project
 
     async def update(self, project_id: UUID, data: ProjectUpdate, user: User) -> Project:
-        project = await self._get_project_for_user(project_id, user)
+        project = await self._get_project_for_user(project_id, user, require_owner=True)
         return await self.project_repo.update(project, data.model_dump(exclude_unset=True))
 
     async def delete(self, project_id: UUID, user: User) -> None:
-        project = await self._get_project_for_user(project_id, user)
+        project = await self._get_project_for_user(project_id, user, require_owner=True)
         return await self.project_repo.delete(project)
