@@ -17,5 +17,9 @@ def can_edit_tasks(membership: ProjectMember) -> bool:
     return _has_role(membership, MemberRole.OWNER, MemberRole.MEMBER)
 
 
+def can_view_tasks(membership: ProjectMember) -> bool:
+    return is_accepted(membership)
+
+
 def can_view_project(membership: ProjectMember) -> bool:
     return is_accepted(membership)
