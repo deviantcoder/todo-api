@@ -54,17 +54,12 @@ class ProjectRepository(BaseRepository[Project]):
         return await self.get_paginated(stmt, offset, limit, filters)
 
     async def get_task_counts(self, project_id: UUID) -> dict[str, int]:
-        active = await self.session.scalar(
-            select(func.count()).where(
-                Task.project_id == project_id,
-                Task.status == TaskStatus.ACTIVE
-            )
-        ) or 0
-        completed = await self.session.scalar(
-            select(func.count()).where(
-                Task.project_id == project_id,
-                Task.status == TaskStatus.COMPLETED
-            )
-        ) or 0
+        counts = select(
+            func.count().filter(Task.status == TaskStatus.ACTIVE).label('active'),
+            func.count().filter(Task.status == TaskStatus.COMPLETED).label('completed')
+        ).where(Task.project_id == project_id)
+
+        result = await self.session.execute(counts)
+        active, completed = result.one()
 
         return {'active': active, 'completed': completed}
