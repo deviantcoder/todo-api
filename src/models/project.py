@@ -21,7 +21,7 @@ class Project(Base):
     __tablename__ = 'projects'
 
     title: Mapped[str] = mapped_column(String(200), nullable=False, index=True)
-    description: Mapped[str] = mapped_column(Text(500), nullable=True)
+    description: Mapped[str] = mapped_column(Text, nullable=True)
     status: Mapped[ProjectStatus] = mapped_column(Enum(ProjectStatus), default=ProjectStatus.ACTIVE, nullable=False)
     due_date: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
     owner_id: Mapped[UUID] = mapped_column(ForeignKey('users.id', ondelete='CASCADE'), nullable=False)

@@ -1,7 +1,7 @@
 """empty message
 
 Revision ID: 32862275440e
-Revises: 
+Revises:
 Create Date: 2026-04-15 11:14:45.886718
 
 """
@@ -38,7 +38,7 @@ def upgrade() -> None:
     op.create_index(op.f('ix_users_username'), 'users', ['username'], unique=True)
     op.create_table('projects',
     sa.Column('title', sa.String(length=200), nullable=False),
-    sa.Column('description', sa.Text(length=500), nullable=True),
+    sa.Column('description', sa.Text(), nullable=True),
     sa.Column('status', sa.Enum('ACTIVE', 'COMPLETED', name='projectstatus'), nullable=False),
     sa.Column('due_date', sa.DateTime(timezone=True), nullable=True),
     sa.Column('owner_id', sa.UUID(), nullable=False),
@@ -79,7 +79,7 @@ def upgrade() -> None:
     op.create_index(op.f('ix_project_members_id'), 'project_members', ['id'], unique=False)
     op.create_table('tasks',
     sa.Column('title', sa.String(length=200), nullable=False),
-    sa.Column('description', sa.Text(length=500), nullable=True),
+    sa.Column('description', sa.Text(), nullable=True),
     sa.Column('status', sa.Enum('ACTIVE', 'COMPLETED', name='taskstatus'), nullable=False),
     sa.Column('priority', sa.Enum('LOW', 'MEDIUM', 'HIGH', name='taskpriority'), nullable=False),
     sa.Column('due_date', sa.DateTime(timezone=True), nullable=True),

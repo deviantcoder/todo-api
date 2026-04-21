@@ -27,7 +27,7 @@ class Task(Base):
     __tablename__ = 'tasks'
 
     title: Mapped[str] = mapped_column(String(200), nullable=False, index=True)
-    description: Mapped[str] = mapped_column(Text(500), nullable=True)
+    description: Mapped[str] = mapped_column(Text, nullable=True)
     status: Mapped[TaskStatus] = mapped_column(Enum(TaskStatus), default=TaskStatus.ACTIVE, nullable=False)
     priority: Mapped[TaskPriority] = mapped_column(Enum(TaskPriority), default=TaskPriority.LOW, nullable=False)
     due_date: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
