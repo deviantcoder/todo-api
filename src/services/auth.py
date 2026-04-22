@@ -62,8 +62,7 @@ class AuthService:
         else:
             user = await self.user_repo.get_by_username(username)
             if user is not None:
-                data = {c.name: str(getattr(user, c.name)) for c in user.__table__.columns}
-                await self.cache.set_user(user.username, data)
+                await self.cache.set_user(user.username, user.to_dict())
 
         if user is None or not verify_password(password, user.hashed_password):
             raise InvalidCredentialsException()

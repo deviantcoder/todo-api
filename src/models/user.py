@@ -22,3 +22,9 @@ class User(Base):
     tasks = relationship('Task', back_populates='owner')
     projects = relationship('Project', back_populates='owner')
     project_memberships = relationship('ProjectMember', back_populates='user')
+
+    def to_dict(self) -> dict:
+        return {
+            column.name: str(getattr(self, column.name))
+            for column in self.__table__.columns
+        }
