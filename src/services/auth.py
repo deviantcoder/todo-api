@@ -1,5 +1,7 @@
 from datetime import datetime, timedelta, timezone
 
+from src.core.cache_keys import user_key_by_id, user_key_by_username
+from src.core.cache_service import CacheService
 from src.core.config import settings
 from src.core.exceptions import (
     AlreadyExistsException,
@@ -21,7 +23,6 @@ from src.repos.refresh_token import RefreshTokenRepository
 from src.repos.user import UserRepository
 from src.schemas.auth import ChangePasswordRequest, TokenResponse
 from src.schemas.user import UserCreate
-from src.core.cache_service import CacheService
 
 
 class AuthService:
@@ -57,12 +58,15 @@ class AuthService:
         return await self.user_repo.create(user)
 
     async def login(self, username: str, password: str) -> TokenResponse:
-        if cached := await self.cache.get_user(username):
+        user_key = user_key_by_username(username)
+        cached = await self.cache.get(user_key)
+
+        if cached is not None:
             user = User(**cached)
         else:
             user = await self.user_repo.get_by_username(username)
             if user is not None:
-                await self.cache.set_user(user.username, user.to_dict())
+                await self.cache.set(user_key, user.to_dict())
 
         if user is None or not verify_password(password, user.hashed_password):
             raise InvalidCredentialsException()
@@ -84,7 +88,15 @@ class AuthService:
 
         await self.token_repo.revoke(token)
 
-        user = await self.user_repo.get_by_id(token.owner_id)
+        user_key = user_key_by_id(token.owner_id)
+        cached = await self.cache.get(user_key)
+
+        if cached is not None:
+            user = User(**cached)
+        else:
+            user = await self.user_repo.get_by_id(token.owner_id)
+            if user is not None:
+                await self.cache.set(user_key, user.to_dict())
 
         if user is None:
             raise InvalidCredentialsException()
