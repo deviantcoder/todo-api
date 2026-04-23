@@ -2,7 +2,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
 
-from src.models.project_member import MemberRole, MemberStatus
+from src.models.membership import MemberRole, MemberStatus
 
 
 class InviteMemberRequest(BaseModel):

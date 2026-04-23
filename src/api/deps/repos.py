@@ -4,7 +4,7 @@ from fastapi import Depends
 
 from src.api.deps.session import SessionDep
 from src.repos.project import ProjectRepository
-from src.repos.project_member import ProjectMemberRepository
+from src.repos.membership import ProjectMemberRepository
 from src.repos.task import TaskRepository
 from src.repos.user import UserRepository
 

@@ -1,4 +1,4 @@
-from src.models.project_member import ProjectMember, MemberStatus, MemberRole
+from src.models.membership import ProjectMember, MemberStatus, MemberRole
 
 
 def is_accepted(membership: ProjectMember) -> bool:

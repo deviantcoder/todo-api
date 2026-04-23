@@ -4,7 +4,7 @@ from src.services.auth import AuthService
 from src.services.project import ProjectService
 from src.services.task import TaskService
 from src.services.user import UserService
-from src.services.project_member import ProjectMemberService
+from src.services.membership import ProjectMemberService
 
 
 @pytest.fixture

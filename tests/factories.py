@@ -9,7 +9,7 @@ from src.models.project import Project, ProjectStatus
 from src.models.refresh_token import RefreshToken
 from src.models.task import Task, TaskPriority, TaskStatus
 from src.models.user import User
-from src.models.project_member import ProjectMember, MemberRole, MemberStatus
+from src.models.membership import ProjectMember, MemberRole, MemberStatus
 
 USER_PASSWORD = 'pass123'
 

@@ -1,5 +1,5 @@
 from .base import BaseRepository
-from src.models.project_member import ProjectMember
+from src.models.membership import ProjectMember
 from uuid import UUID
 from sqlalchemy import select
 

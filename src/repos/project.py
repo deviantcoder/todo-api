@@ -4,7 +4,7 @@ from uuid import UUID
 from sqlalchemy import func, or_, select
 
 from src.models.project import Project
-from src.models.project_member import MemberStatus, ProjectMember
+from src.models.membership import MemberStatus, ProjectMember
 from src.models.task import Task, TaskStatus
 from src.repos.base import BaseRepository
 

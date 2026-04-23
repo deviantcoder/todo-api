@@ -3,7 +3,7 @@ from unittest.mock import AsyncMock
 import pytest
 
 from src.repos.project import ProjectRepository
-from src.repos.project_member import ProjectMemberRepository
+from src.repos.membership import ProjectMemberRepository
 from src.repos.refresh_token import RefreshTokenRepository
 from src.repos.task import TaskRepository
 from src.repos.user import UserRepository

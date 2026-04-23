@@ -3,9 +3,9 @@ from uuid import UUID
 from fastapi import APIRouter, status
 
 from src.api.deps.auth import CurrentUserDep
-from src.api.deps.project_member import MemberServiceDep
-from src.models.project_member import ProjectMember
-from src.schemas.project_member import (
+from src.api.deps.membership import MemberServiceDep
+from src.models.membership import ProjectMember
+from src.schemas.membership import (
     InviteMemberRequest,
     MemberResponse,
     UpdateMemberRoleRequest,

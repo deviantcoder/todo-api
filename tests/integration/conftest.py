@@ -10,7 +10,7 @@ from src.db.base import Base
 from src.db.session import get_session
 from src.main import app
 from src.models.project import Project
-from src.models.project_member import MemberRole, MemberStatus, ProjectMember
+from src.models.membership import MemberRole, MemberStatus, ProjectMember
 from src.models.task import Task
 from src.models.user import User
 from tests.factories import (

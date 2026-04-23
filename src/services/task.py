@@ -5,7 +5,7 @@ from src.core.security.permissions import can_edit_tasks, can_view_tasks
 from src.models.task import Task
 from src.models.user import User
 from src.repos.project import ProjectRepository
-from src.repos.project_member import ProjectMemberRepository
+from src.repos.membership import ProjectMemberRepository
 from src.repos.task import TaskRepository
 from src.schemas.pagination import PagedResponse, PaginationParams
 from src.schemas.task import TaskCreate, TaskFilterParams, TaskResponse, TaskUpdate

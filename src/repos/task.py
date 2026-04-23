@@ -5,7 +5,7 @@ from sqlalchemy import select, or_
 
 from src.models.task import Task
 from src.repos.base import BaseRepository
-from src.models.project_member import ProjectMember, MemberStatus
+from src.models.membership import ProjectMember, MemberStatus
 
 
 class TaskRepository(BaseRepository[Task]):

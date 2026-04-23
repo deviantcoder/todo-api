@@ -8,12 +8,12 @@ from src.core.exceptions import (
 )
 from src.core.security.permissions import can_manage_members
 from src.models.project import Project
-from src.models.project_member import MemberRole, MemberStatus, ProjectMember
+from src.models.membership import MemberRole, MemberStatus, ProjectMember
 from src.models.user import User
 from src.repos.project import ProjectRepository
-from src.repos.project_member import ProjectMemberRepository
+from src.repos.membership import ProjectMemberRepository
 from src.repos.user import UserRepository
-from src.schemas.project_member import InviteMemberRequest
+from src.schemas.membership import InviteMemberRequest
 
 
 class ProjectMemberService:

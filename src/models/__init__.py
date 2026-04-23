@@ -1,5 +1,14 @@
-from .user import User  # noqa
-from .refresh_token import RefreshToken  # noqa
-from .task import Task  # noqa
-from .project import Project  # noqa
-from .project_member import ProjectMember  # noqa
+from .user import User
+from .refresh_token import RefreshToken
+from .task import Task
+from .project import Project
+from .membership import ProjectMember
+
+
+__all__ = [
+    'User',
+    'RefreshToken',
+    'Task',
+    'Project',
+    'ProjectMember'
+]

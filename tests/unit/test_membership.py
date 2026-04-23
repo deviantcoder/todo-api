@@ -8,9 +8,9 @@ from src.core.exceptions import (
     InvalidOperationException,
     NotFoundException,
 )
-from src.models.project_member import MemberRole, MemberStatus
-from src.schemas.project_member import InviteMemberRequest
-from src.services.project_member import ProjectMemberService
+from src.models.membership import MemberRole, MemberStatus
+from src.schemas.membership import InviteMemberRequest
+from src.services.membership import ProjectMemberService
 from tests.factories import ProjectFactory, ProjectMemberFactory, UserFactory
 
 

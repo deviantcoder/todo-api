@@ -2,10 +2,10 @@ from uuid import UUID
 
 from src.core.exceptions import ForbiddenException, NotFoundException
 from src.models.project import Project
-from src.models.project_member import MemberRole, MemberStatus, ProjectMember
+from src.models.membership import MemberRole, MemberStatus, ProjectMember
 from src.models.user import User
 from src.repos.project import ProjectRepository
-from src.repos.project_member import ProjectMemberRepository
+from src.repos.membership import ProjectMemberRepository
 from src.schemas.pagination import PagedResponse, PaginationParams
 from src.schemas.project import (
     ProjectCreate,

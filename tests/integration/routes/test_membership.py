@@ -4,7 +4,7 @@ from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.project import Project
-from src.models.project_member import MemberRole, MemberStatus, ProjectMember
+from src.models.membership import MemberRole, MemberStatus, ProjectMember
 from src.models.user import User
 
 
