@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime
-from typing import Any
+from typing import Any, Self
 
 from sqlalchemy import UUID, DateTime, func
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
@@ -20,7 +20,21 @@ class Base(DeclarativeBase):
     )
 
     def to_dict(self) -> dict[str, Any]:
-        return {
-            column.name: str(getattr(self, column.name))
-            for column in self.__table__.columns
-        }
+        result = {}
+        for column in self.__table__.columns:
+            value = getattr(self, column.name)
+            if isinstance(value, uuid.UUID):
+                value = str(value)
+            elif isinstance(value, datetime):
+                value = value.isoformat()
+            result[column.name] = value
+        return result
+
+    @classmethod
+    def from_dict(cls, data: dict) -> Self:
+        for c in cls.__table__.columns:
+            if isinstance(c.type, uuid.UUID) and isinstance(data.get(c.name), str):
+                data[c.name] = uuid.UUID(data[c.name])
+            elif isinstance(c.type, datetime) and isinstance(data.get(c.name), str):
+                data[c.name] = datetime.fromisoformat(data[c.name])
+        return cls(**data)

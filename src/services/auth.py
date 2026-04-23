@@ -62,7 +62,7 @@ class AuthService:
         cached = await self.cache.get(user_key)
 
         if cached is not None:
-            user = User(**cached)
+            user = User.from_dict(cached)
         else:
             user = await self.user_repo.get_by_username(username)
             if user is not None:
