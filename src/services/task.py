@@ -3,9 +3,10 @@ from uuid import UUID
 from src.core.caching.cache_keys import get_cache_key
 from src.core.caching.cache_manager import CacheManager
 from src.core.caching.cache_service import CacheService
-from src.core.exceptions import ForbiddenException, NotFoundException
+from src.core.exceptions import ForbiddenException
 from src.core.security.permissions import can_edit_tasks, can_view_tasks
 from src.models.membership import MemberRole
+from src.models.project import Project
 from src.models.task import Task
 from src.models.user import User
 from src.repos.membership import ProjectMemberRepository
@@ -34,6 +35,7 @@ class TaskService(BaseService[Task, TaskResponse]):
         self.project_repo = project_repo
         self.member_repo = member_repo
         self.task_cache = CacheManager[Task](cache, Task)
+        self.project_cache = CacheManager[Project](cache, Project)
 
     async def _get_task(self, task_id: UUID, use_cache: bool = True) -> Task:
         return await self.task_cache.get_or_fetch(
@@ -43,10 +45,11 @@ class TaskService(BaseService[Task, TaskResponse]):
         )
 
     async def _get_project_access(self, project_id: UUID, user: User) -> MemberRole:
-        project = await self.project_repo.get_by_id(project_id)
-
-        if project is None:
-            raise NotFoundException("Project not found")
+        project = await self.project_cache.get_or_fetch(
+            get_cache_key('project:id', project_id),
+            lambda: self.project_repo.get_by_id(project_id),
+            use_cache=True
+        )
 
         if project.owner_id == user.id:
             return MemberRole.OWNER
