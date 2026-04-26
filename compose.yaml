@@ -6,10 +6,12 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_MULTIPLE_DATABASES: todo_test_db
     ports:
       - 5432:5432
     volumes:
       - postgres_data:/var/lib/postgresql
+      - ./scripts/multiple_dbs.sh:/docker-entrypoint-initdb.d/multiple_dbs.sh
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
