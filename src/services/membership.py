@@ -15,6 +15,10 @@ from src.repos.membership import ProjectMemberRepository
 from src.repos.user import UserRepository
 from src.schemas.membership import InviteMemberRequest
 
+from src.core.caching.cache_service import CacheService
+from src.core.caching.cache_manager import CacheManager
+from src.core.caching.cache_keys import get_cache_key
+
 
 class ProjectMemberService:
     """
@@ -25,16 +29,21 @@ class ProjectMemberService:
         self,
         member_repo: ProjectMemberRepository,
         project_repo: ProjectRepository,
-        user_repo: UserRepository
+        user_repo: UserRepository,
+        cache: CacheService,
     ) -> None:
         self.member_repo = member_repo
         self.project_repo = project_repo
         self.user_repo = user_repo
+        self.project_cache = CacheManager[Project](cache, Project)
 
     async def _get_project(self, project_id: UUID) -> Project:
-        project = await self.project_repo.get_by_id(project_id)
-        if project is None:
-            raise NotFoundException('Project not found')
+        project = await self.project_cache.get_or_fetch(
+            get_cache_key('project:id', project_id),
+            lambda: self.project_repo.get_by_id(project_id),
+            use_cache=True
+        )
+
         return project
 
     async def _get_membership(self, project_id: UUID, user_id: UUID) -> ProjectMember:
