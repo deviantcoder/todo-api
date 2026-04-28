@@ -1,5 +1,6 @@
 from datetime import datetime
 from enum import StrEnum
+from typing import Self
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -40,6 +41,17 @@ class ProjectResponse(BaseModel):
     model_config = ConfigDict(
         from_attributes=True
     )
+
+    @classmethod
+    def from_row(cls, row: dict) -> Self:
+        project = row['project']
+        return cls(
+            **{c.name: getattr(project, c.name) for c in project.__table__.columns},
+            task_counts=TaskCounts(
+                active=row['active_tasks'],
+                completed=row['completed_tasks']
+            )
+        )
 
 
 class ProjectSortField(StrEnum):

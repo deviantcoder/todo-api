@@ -76,11 +76,11 @@ class ProjectService(BaseService[Project, ProjectResponse]):
         filters: ProjectFilterParams | None = None
     ) -> PagedResponse[ProjectResponse]:
         filters_dict = filters.model_dump(exclude_none=True) if filters else {}
-        items, total = await self.project_repo.get_accessible_projects(
+        rows, total = await self.project_repo.get_accessible_projects(
             user.id, pg_params.offset, pg_params.limit, filters_dict
         )
-        projects = [await self._attach_counts(p) for p in items]
-        return await self.paginate(projects, total, pg_params)
+        items = [ProjectResponse.from_row(row) for row in rows]
+        return PagedResponse.create(items, total, pg_params)
 
     async def get_by_id(self, project_id: UUID, user: User) -> Project:
         return await self._get_project_for_user(project_id, user)
