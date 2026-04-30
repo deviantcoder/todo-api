@@ -12,11 +12,11 @@ class CacheManager[M]:
     """
     Generic cache manager
     """
-    
+
     def __init__(self, cache: CacheService, model_cls: type[M]) -> None:
         self.cache = cache
         self.model_cls = model_cls
-    
+
     async def get_or_fetch(
         self,
         key: str,
@@ -30,17 +30,17 @@ class CacheManager[M]:
                     return self.model_cls.from_dict(cached)  # type: ignore
             except Exception as e:
                 logger.warning(f'Cache read failed | key={key} | error={e}')
-        
+
         instance = await fetch()
 
         if instance is None:
             raise NotFoundException()
-        
-        if use_cache:
+
+        if use_cache and instance:
             await self.set(key, instance.to_dict())  # type: ignore
-        
+
         return instance
-    
+
     async def set(self, key: str, instance: M) -> None:
         try:
             await self.cache.set(key, instance.to_dict())  # type: ignore
