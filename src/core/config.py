@@ -20,6 +20,18 @@ class Settings(BaseSettings):
 
     REDIS_URL: str = 'redis://localhost:6379'
 
+    CELERY_BROKER_URL: str = 'amqp://admin:admin@localhost:5672//'
+    CELERY_RESULT_BACKEND: str = 'redis://localhost:6379/1'
+
+    MAIL_USERNAME: str
+    MAIL_PASSWORD: str
+    MAIL_FROM: str
+    MAIL_PORT: int
+    MAIL_SERVER: str
+    MAIL_STARTTLS: bool = True
+    MAIL_SSL_TLS: bool = False
+    USE_CREDENTIALS: bool = True
+
     SECRET_KEY: str
 
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
