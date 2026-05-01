@@ -19,6 +19,14 @@ mail = FastMail(conf)
 async def send_email(
     subject: str, recipients: list[str], body: str
 ) -> None:
+    """
+    Send an email using FastAPI-Mail.
+
+    Args:
+        subject (str): The subject of the email.
+        recipients (list[str]): A list of recipient email addresses.
+        body (str): The body of the email.
+    """
     message = MessageSchema(
         subject=subject,
         recipients=recipients,  # type: ignore
