@@ -8,6 +8,8 @@
     <img src="https://img.shields.io/badge/SQLite-dev-blue?logo=sqlite&logoColor=white" />
     <img src="https://img.shields.io/badge/PostgreSQL-18-blue?logo=postgresql&logoColor=white" />
     <img src="https://img.shields.io/badge/Redis-8-red?logo=redis&logoColor=white" />
+    <img src="https://img.shields.io/badge/Celery-5.6.3-lime?logo=celery&logoColor=white" />
+    <img src="https://img.shields.io/badge/RabbitMQ-4.0-orange?logo=rabbitmq&logoColor=white" />
     <img src="https://img.shields.io/badge/uv-package%20manager-red?logo=uv&logoColor=white" />
     <img src="https://img.shields.io/badge/MIT-license-green" />
 </p>
