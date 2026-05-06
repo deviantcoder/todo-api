@@ -14,10 +14,9 @@ from src.repos.project import ProjectRepository
 from src.repos.task import TaskRepository
 from src.schemas.pagination import PagedResponse, PaginationParams
 from src.schemas.task import TaskCreate, TaskFilterParams, TaskResponse, TaskUpdate
-from src.services.base import BaseService
 
 
-class TaskService(BaseService[Task, TaskResponse]):
+class TaskService:
     """
     Task service class
     """
@@ -92,13 +91,11 @@ class TaskService(BaseService[Task, TaskResponse]):
     ) -> PagedResponse[TaskResponse]:
         if filters is not None and filters.project_id is not None:
             await self._get_project_access(filters.project_id, user)
-
         filters_dict = filters.model_dump(exclude_none=True) if filters else {}
-
         items, total = await self.task_repo.get_accessible_tasks(
             user.id, pg_params.offset, pg_params.limit, filters_dict
         )
-        return await self.paginate(items, total, pg_params)
+        return PagedResponse.create(items, total, pg_params)
 
     async def get_by_id(self, task_id: UUID, user: User) -> Task:
         task = await self._get_task(task_id, use_cache=True)

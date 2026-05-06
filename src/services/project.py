@@ -17,10 +17,9 @@ from src.schemas.project import (
     ProjectUpdate,
     TaskCounts,
 )
-from src.services.base import BaseService
 
 
-class ProjectService(BaseService[Project, ProjectResponse]):
+class ProjectService:
     """
     Project service class
     """
