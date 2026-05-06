@@ -21,7 +21,16 @@ from src.schemas.membership import InviteMemberRequest
 
 class ProjectMemberService:
     """
-    Project member service class
+    Service layer for managing project memberships.
+
+    Handles member invitations, role updates, access control, and member
+    removal for projects. Uses caching to reduce redundant project lookups.
+
+    Attributes:
+        member_repo (MemberRepository): Repository for project membership data access.
+        project_repo (ProjectRepository): Repository for project data access.
+        user_repo (UserRepository): Repository for user data access.
+        cache (CacheService): Low-level cache service for direct cache interactions.
     """
 
     def __init__(
@@ -37,6 +46,10 @@ class ProjectMemberService:
         self.project_cache = CacheManager[Project](cache, Project)
 
     async def _get_project(self, project_id: UUID) -> Project:
+        """
+        Retrieve a project by ID, using the cache where possible.
+        """
+
         project = await self.project_cache.get_or_fetch(
             get_cache_key('project:id', project_id),
             lambda: self.project_repo.get_by_id(project_id),
@@ -46,12 +59,20 @@ class ProjectMemberService:
         return project
 
     async def _get_membership(self, project_id: UUID, user_id: UUID) -> ProjectMember:
+        """
+        Retrieve a specific project membership, raising an error if not found.
+        """
+
         membership = await self.member_repo.get_membership(project_id, user_id)
         if membership is None:
             raise NotFoundException('Membership not found')
         return membership
 
     async def _require_manage_permission(self, project_id: UUID, user: User) -> None:
+        """
+        Ensure the given user has permission to manage members of a project.
+        """
+
         project = await self._get_project(project_id)
         membership = await self.member_repo.get_membership(project.id, user.id)
 
@@ -59,6 +80,10 @@ class ProjectMemberService:
             raise ForbiddenException()
 
     async def get_members(self, project_id: UUID, current_user: User) -> list[ProjectMember]:
+        """
+        Retrieve all members of a project.
+        """
+
         project = await self._get_project(project_id)
         membership = await self.member_repo.get_membership(project.id, current_user.id)
 
@@ -74,6 +99,10 @@ class ProjectMemberService:
         return await self.member_repo.get_project_members(project_id)
 
     async def invite(self, project_id: UUID, data: InviteMemberRequest, current_user: User) -> ProjectMember:
+        """
+        Invite a user to a project.
+        """
+
         await self._require_manage_permission(project_id, current_user)
 
         invitee = await self.user_repo.get_by_username(data.username)
@@ -94,6 +123,10 @@ class ProjectMemberService:
         return await self.member_repo.create(member)
 
     async def accept_invite(self, project_id: UUID, current_user: User) -> ProjectMember:
+        """
+        Accept a pending project invitation.
+        """
+
         project = await self._get_project(project_id)
         membership = await self._get_membership(project.id, current_user.id)
 
@@ -103,6 +136,10 @@ class ProjectMemberService:
         return await self.member_repo.update(membership, {'status': MemberStatus.ACCEPTED})
 
     async def update_role(self, project_id: UUID, user_id: UUID, role: MemberRole, current_user: User) -> ProjectMember:
+        """
+        Update the role of a project member.
+        """
+
         await self._require_manage_permission(project_id, current_user)
 
         membership = await self._get_membership(project_id, user_id)
@@ -112,6 +149,10 @@ class ProjectMemberService:
         return await self.member_repo.update(membership, {'role': role})
 
     async def remove_member(self, project_id: UUID, user_id: UUID, current_user: User) -> None:
+        """
+        Remove a member from a project.
+        """
+
         await self._require_manage_permission(project_id, current_user)
 
         membership = await self._get_membership(project_id, user_id)
@@ -121,6 +162,10 @@ class ProjectMemberService:
         await self.member_repo.delete(membership)
 
     async def leave(self, project_id: UUID, current_user: User) -> None:
+        """
+        Remove the current user from a project.
+        """
+
         membership = await self._get_membership(project_id, current_user.id)
         if membership.role == MemberRole.OWNER:
             raise InvalidOperationException('Owner cannot leave - transfer ownership or delete the project')
