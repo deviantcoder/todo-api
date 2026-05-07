@@ -41,7 +41,7 @@ class CacheManager[M]:
             raise NotFoundException()
 
         if use_cache and instance:
-            await self.set(key, instance.to_dict())  # type: ignore
+            await self.set(key, instance)
 
         return instance
 

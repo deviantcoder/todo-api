@@ -4,8 +4,10 @@ from src.core.exceptions import (
     AlreadyExistsException,
     InvalidCredentialsException,
     InvalidOperationException,
-    NotFoundException,
 )
+from src.infra.caching.cache_keys import get_cache_key
+from src.infra.caching.cache_manager import CacheManager
+from src.infra.caching.cache_service import CacheService
 from src.infra.security.auth import verify_password
 from src.models.user import User
 from src.repos.user import UserRepository
@@ -21,29 +23,33 @@ class UserService:
         repo (UserRepository): Repository for user data access.
     """
 
-    def __init__(self, repo: UserRepository) -> None:
-        self.repo = repo
+    def __init__(
+        self,
+        user_repo: UserRepository,
+        cache: CacheService
+    ) -> None:
+        self.user_repo = user_repo
+        self.user_cache = CacheManager(cache, User)
 
     async def get_all(self, pg_params: PaginationParams) -> PagedResponse[UserResponse]:
         """
         Retrieve list of all users.  # TODO: update
         """
 
-        items, total = await self.repo.get_all()
+        items, total = await self.user_repo.get_all()
 
         return PagedResponse.create(items, total, pg_params)
 
-    async def get_by_id(self, id: UUID) -> User:
+    async def get_by_id(self, user_id: UUID) -> User:
         """
         Retrieve a single user by ID.
         """
 
-        user = await self.repo.get_by_id(id)
-
-        if user is None:
-            raise NotFoundException('User not found')
-
-        return user
+        return await self.user_cache.get_or_fetch(
+            get_cache_key('user:id', user_id),
+            lambda: self.user_repo.get_by_id(user_id),
+            use_cache=True
+        )
 
     async def change_username(self, user: User, data: ChangeUsernameRequest) -> User:
         """
@@ -56,12 +62,15 @@ class UserService:
         if data.new_username == user.username:
             raise InvalidOperationException('New username cannot be the same as the current username')
 
-        existing = await self.repo.get_by_username(data.new_username)
+        existing = await self.user_repo.get_by_username(data.new_username)
 
         if existing is not None:
             raise AlreadyExistsException('Username is already taken')
 
-        return await self.repo.update(user, {'username': data.new_username})
+        await self.user_cache.invalidate(get_cache_key('user:id', user.id))
+        await self.user_cache.invalidate(get_cache_key('user:username', user.username))
+
+        return await self.user_repo.update(user, {'username': data.new_username})
 
     async def change_email(self, user: User, data: ChangeEmailRequest) -> User:
         """
@@ -74,9 +83,12 @@ class UserService:
         if data.new_email == user.email:
             raise InvalidOperationException('New email cannot be the same as the current email')
 
-        existing = await self.repo.get_by_username_or_email(email=data.new_email)
+        existing = await self.user_repo.get_by_username_or_email(email=data.new_email)
 
         if existing is not None:
             raise AlreadyExistsException('Email is already registered')
 
-        return await self.repo.update(user, {'email': data.new_email})
+        await self.user_cache.invalidate(get_cache_key('user:id', user.id))
+        await self.user_cache.invalidate(get_cache_key('user:username', user.username))
+
+        return await self.user_repo.update(user, {'email': data.new_email})
