@@ -22,6 +22,11 @@ class ProjectService:
     """Service layer for managing projects, including creation, retrieval, updating, and deletion.
 
     Handles authorization checks and caching for project-related operations.
+
+    Attributes:
+        project_repo (ProjectRepository): Repository for project data access.
+        member_repo (ProjectMemberRepository): Repository for membership data access.
+        project_cache (CacheManager[Project]): High-level cache manager for Project model instances.
     """
 
     CACHE_PREFIX: str = 'project:id'

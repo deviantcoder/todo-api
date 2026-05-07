@@ -18,7 +18,13 @@ from src.schemas.task import TaskCreate, TaskFilterParams, TaskResponse, TaskUpd
 
 class TaskService:
     """
-    Task service class
+    Service layer for managing tasks, including permission checks and caching.
+
+    Attributes:
+        task_repo (TaskRepository): Repository for task data access.
+        project_repo (ProjectRepository): Repository for project data access.
+        member_repo (projectmemberRepository): Repository for membership data access.
+        cache (CacheService): Low-level cache service for direct cache interactions.
     """
 
     CACHE_PREFIX: str = 'task:id'
@@ -37,6 +43,10 @@ class TaskService:
         self.project_cache = CacheManager[Project](cache, Project)
 
     async def _get_task(self, task_id: UUID, use_cache: bool = True) -> Task:
+        """
+        Retrieve a task by its ID, optionally using the cache.
+        """
+
         return await self.task_cache.get_or_fetch(
             key=get_cache_key(self.CACHE_PREFIX, task_id),
             fetch=lambda: self.task_repo.get_by_id(task_id),
@@ -44,6 +54,10 @@ class TaskService:
         )
 
     async def _get_project_access(self, project_id: UUID, user: User) -> MemberRole:
+        """
+        Determine the access level a user has for a given project.
+        """
+
         project = await self.project_cache.get_or_fetch(
             get_cache_key('project:id', project_id),
             lambda: self.project_repo.get_by_id(project_id),
@@ -64,6 +78,10 @@ class TaskService:
         return MemberRole.VIEWER
 
     async def _check_view_permission(self, task: Task, user: User) -> None:
+        """
+        Verify that a user has permission to view a task.
+        """
+
         if task.project_id is None:
             if task.owner_id != user.id:
                 raise ForbiddenException()
@@ -72,6 +90,10 @@ class TaskService:
         await self._get_project_access(task.project_id, user)
 
     async def _check_edit_permission(self, task: Task, user: User) -> None:
+        """
+        Verify that a user has permission to edit or delete a task.
+        """
+
         if task.owner_id == user.id:
             return
 
@@ -89,6 +111,10 @@ class TaskService:
         pg_params: PaginationParams,
         filters: TaskFilterParams | None = None,
     ) -> PagedResponse[TaskResponse]:
+        """
+        Retrieve a paginated list of tasks accessible to the user.
+        """
+
         if filters is not None and filters.project_id is not None:
             await self._get_project_access(filters.project_id, user)
         filters_dict = filters.model_dump(exclude_none=True) if filters else {}
@@ -98,11 +124,19 @@ class TaskService:
         return PagedResponse.create(items, total, pg_params)
 
     async def get_by_id(self, task_id: UUID, user: User) -> Task:
+        """
+        Retrieve a single task by ID, enforcing view permissions.
+        """
+
         task = await self._get_task(task_id, use_cache=True)
         await self._check_view_permission(task, user)
         return task
 
     async def create(self, data: TaskCreate, user: User) -> Task:
+        """
+        Create a new task and assign the creating user as its owner.
+        """
+
         if data.project_id:
             await self._get_project_access(data.project_id, user)
 
@@ -117,6 +151,10 @@ class TaskService:
         return created
 
     async def update(self, task_id: UUID, data: TaskUpdate, user: User) -> Task:
+        """
+        Update an existing task with the provided data.
+        """
+
         task = await self._get_task(task_id, use_cache=False)
         await self._check_edit_permission(task, user)
 
@@ -129,6 +167,10 @@ class TaskService:
         return updated
 
     async def delete(self, task_id: UUID, user: User) -> None:
+        """
+        Delete a task by ID.
+        """
+
         task = await self._get_task(task_id, use_cache=False)
 
         await self._check_edit_permission(task, user)
