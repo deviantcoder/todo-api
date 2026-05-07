@@ -14,16 +14,27 @@ from src.schemas.user import ChangeEmailRequest, ChangeUsernameRequest
 
 class UserService:
     """
-    User service class
+    Service layer for managing users.
+
+    Attributes:
+        repo (UserRepository): Repository for user data access.
     """
 
     def __init__(self, repo: UserRepository) -> None:
         self.repo = repo
 
     async def get_all(self) -> list[User]:
+        """
+        Retrieve list of all users.
+        """
+
         return await self.repo.get_all()
 
     async def get_by_id(self, id: UUID) -> User:
+        """
+        Retrieve a single user by ID.
+        """
+
         user = await self.repo.get_by_id(id)
 
         if user is None:
@@ -32,6 +43,10 @@ class UserService:
         return user
 
     async def change_username(self, user: User, data: ChangeUsernameRequest) -> User:
+        """
+        Change the username of an existing user.
+        """
+
         if not verify_password(data.password, user.hashed_password):
             raise InvalidCredentialsException()
 
@@ -46,6 +61,10 @@ class UserService:
         return await self.repo.update(user, {'username': data.new_username})
 
     async def change_email(self, user: User, data: ChangeEmailRequest) -> User:
+        """
+        Change the email of an existing user.
+        """
+
         if not verify_password(data.password, user.hashed_password):
             raise InvalidCredentialsException()
 
