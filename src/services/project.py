@@ -15,13 +15,13 @@ from src.schemas.project import (
     ProjectFilterParams,
     ProjectResponse,
     ProjectUpdate,
-    TaskCounts,
 )
 
 
 class ProjectService:
-    """
-    Project service class
+    """Service layer for managing projects, including creation, retrieval, updating, and deletion.
+
+    Handles authorization checks and caching for project-related operations.
     """
 
     CACHE_PREFIX: str = 'project:id'
@@ -37,13 +37,21 @@ class ProjectService:
         self.project_cache = CacheManager[Project](cache, Project)
 
     async def _get_project(self, project_id: UUID, use_cache: bool = True) -> Project:
+        """
+        Fetch a project by ID, optionally using the cache.
+        """
+
         return await self.project_cache.get_or_fetch(
-            self._project_key(project_id),
+            get_cache_key(self.CACHE_PREFIX, project_id),
             lambda: self.project_repo.get_by_id(project_id),
             use_cache=use_cache
         )
 
     async def _get_project_for_user(self, project_id: UUID, user: User, require_owner: bool = False) -> Project:
+        """
+        Fetch a project and verify the given user has access to it.
+        """
+
         project = await self._get_project(project_id, use_cache=True)
 
         if project.owner_id == user.id:
@@ -59,21 +67,16 @@ class ProjectService:
 
         return project
 
-    async def _attach_counts(self, project: Project) -> ProjectResponse:
-        counts = await self.project_repo.get_task_counts(project.id)
-        response = ProjectResponse.model_validate(project)
-        response.task_counts = TaskCounts(**counts)
-        return response
-
-    def _project_key(self, project_id: UUID) -> str:
-        return get_cache_key(self.CACHE_PREFIX, project_id)
-
     async def get_all(
         self,
         user: User,
         pg_params: PaginationParams,
         filters: ProjectFilterParams | None = None
     ) -> PagedResponse[ProjectResponse]:
+        """
+        Retrieve a paginated list of projects accessible to the given user.
+        """
+
         filters_dict = filters.model_dump(exclude_none=True) if filters else {}
         rows, total = await self.project_repo.get_accessible_projects(
             user.id, pg_params.offset, pg_params.limit, filters_dict
@@ -82,13 +85,21 @@ class ProjectService:
         return PagedResponse.create(items, total, pg_params)
 
     async def get_by_id(self, project_id: UUID, user: User) -> Project:
+        """
+        Retrieve a single project by ID, verifying the user has access.
+        """
+
         return await self._get_project_for_user(project_id, user)
 
     async def create(self, data: ProjectCreate, user: User) -> Project:
+        """
+        Create a new project and assign the creating user as its owner.
+        """
+
         project = Project(**data.model_dump(exclude_unset=True), owner_id=user.id)
         created = await self.project_repo.create(project)
 
-        await self.project_cache.set(self._project_key(created.id), created)
+        await self.project_cache.set(get_cache_key(self.CACHE_PREFIX, created.id), created)
 
         owner_membership = ProjectMember(
             project_id=created.id,
@@ -102,14 +113,22 @@ class ProjectService:
         return project
 
     async def update(self, project_id: UUID, data: ProjectUpdate, user: User) -> Project:
+        """
+        Update an existing project, restricted to the project owner.
+        """
+
         project = await self._get_project_for_user(project_id, user, require_owner=True)
         updated = await self.project_repo.update(project, data.model_dump(exclude_unset=True))
 
-        await self.project_cache.set(self._project_key(project.id), updated)
+        await self.project_cache.set(get_cache_key(self.CACHE_PREFIX, updated.id), updated)
 
         return updated
 
     async def delete(self, project_id: UUID, user: User) -> None:
+        """
+        Delete a project, restricted to the project owner.
+        """
+
         project = await self._get_project_for_user(project_id, user, require_owner=True)
         await self.project_repo.delete(project)
-        await self.project_cache.invalidate(self._project_key(project.id))
+        await self.project_cache.invalidate(get_cache_key(self.CACHE_PREFIX, project.id))
