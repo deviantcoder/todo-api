@@ -9,7 +9,8 @@ from src.core.exceptions import (
 from src.infra.security.auth import verify_password
 from src.models.user import User
 from src.repos.user import UserRepository
-from src.schemas.user import ChangeEmailRequest, ChangeUsernameRequest
+from src.schemas.pagination import PagedResponse, PaginationParams
+from src.schemas.user import ChangeEmailRequest, ChangeUsernameRequest, UserResponse
 
 
 class UserService:
@@ -23,12 +24,14 @@ class UserService:
     def __init__(self, repo: UserRepository) -> None:
         self.repo = repo
 
-    async def get_all(self) -> list[User]:
+    async def get_all(self, pg_params: PaginationParams) -> PagedResponse[UserResponse]:
         """
-        Retrieve list of all users.
+        Retrieve list of all users.  # TODO: update
         """
 
-        return await self.repo.get_all()
+        items, total = await self.repo.get_all()
+
+        return PagedResponse.create(items, total, pg_params)
 
     async def get_by_id(self, id: UUID) -> User:
         """

@@ -1,4 +1,4 @@
-from sqlalchemy import or_, select
+from sqlalchemy import func, or_, select
 
 from src.models.user import User
 from src.repos.base import BaseRepository
@@ -30,3 +30,13 @@ class UserRepository(BaseRepository[User]):
                 )
             )
         )
+
+    async def get_all(self) -> tuple[list[User], int]:  # type: ignore
+        stmt = select(User)
+
+        total = await self.session.scalar(
+            select(func.count()).select_from(User)
+        ) or 0
+        result = await self.session.scalars(stmt)
+
+        return list(result), total
