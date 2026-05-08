@@ -3,6 +3,7 @@ from enum import StrEnum
 from uuid import UUID
 
 from sqlalchemy import DateTime, Enum, ForeignKey, String, Text
+from sqlalchemy.dialects.postgresql import TSVECTOR
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.infra.db.base import Base
@@ -37,3 +38,5 @@ class Task(Base):
 
     project_id: Mapped[UUID] = mapped_column(ForeignKey('projects.id', ondelete='SET NULL'), nullable=True)
     project = relationship('Project', back_populates='tasks')
+
+    search_vector = mapped_column(TSVECTOR, nullable=True)

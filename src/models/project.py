@@ -4,6 +4,7 @@ from uuid import UUID
 
 from sqlalchemy import DateTime, Enum, ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.dialects.postgresql import TSVECTOR
 
 from src.infra.db.base import Base
 
@@ -29,3 +30,5 @@ class Project(Base):
     owner = relationship('User', back_populates='projects')
     tasks = relationship('Task', back_populates='project')
     members = relationship('ProjectMember', back_populates='project')
+
+    search_vector = mapped_column(TSVECTOR, nullable=True)
