@@ -99,3 +99,30 @@ class ProjectRepository(BaseRepository[Project]):
         active, completed = result.one()
 
         return {'active': active, 'completed': completed}
+
+    async def search(self, query: str, user_id: UUID, limit: int = 10) -> list[Project]:
+        tsquery = func.websearch_to_tsquery('english', query)
+
+        inner = (
+            select(Project.id)
+            .outerjoin(ProjectMember, ProjectMember.project_id == Project.id)
+            .where(
+                Project.search_vector.op('@@')(tsquery),
+                or_(
+                    Project.owner_id == user_id,
+                    (ProjectMember.user_id == user_id) &
+                    (ProjectMember.status == MemberStatus.ACCEPTED)
+                )
+            )
+            .distinct()
+            .subquery()
+        )
+
+        stmt = (
+            select(Project)
+            .join(inner, Project.id == inner.c.id)
+            .order_by(func.ts_rank(Project.search_vector, tsquery).desc())
+            .limit(limit)
+        )
+
+        return list(await self.session.scalars(stmt))

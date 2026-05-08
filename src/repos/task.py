@@ -1,7 +1,7 @@
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import or_, select
+from sqlalchemy import func, or_, select
 
 from src.models.membership import MemberStatus, ProjectMember
 from src.models.task import Task
@@ -54,3 +54,30 @@ class TaskRepository(BaseRepository[Task]):
             .distinct()
         )
         return await self.get_paginated(stmt, offset, limit, filters)
+
+    async def search(self, query: str, user_id: UUID, limit: int = 10) -> list[Task]:
+        tsquery = func.websearch_to_tsquery('english', query)
+
+        inner = (
+            select(Task.id)
+            .outerjoin(ProjectMember, ProjectMember.project_id == Task.project_id)
+            .where(
+                Task.search_vector.op('@@')(tsquery),
+                or_(
+                    Task.owner_id == user_id,
+                    (ProjectMember.user_id == user_id) &
+                    (ProjectMember.status == MemberStatus.ACCEPTED)
+                )
+            )
+            .distinct()
+            .subquery()
+        )
+
+        stmt = (
+            select(Task)
+            .join(inner, Task.id == inner.c.id)
+            .order_by(func.ts_rank(Task.search_vector, tsquery).desc())
+            .limit(limit)
+        )
+
+        return list(await self.session.scalars(stmt))
