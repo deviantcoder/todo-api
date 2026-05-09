@@ -1,4 +1,5 @@
 from sqlalchemy import Boolean, String
+from sqlalchemy.dialects.postgresql import TSVECTOR
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.infra.db.base import Base
@@ -23,3 +24,5 @@ class User(Base):
     tasks = relationship('Task', back_populates='owner')
     projects = relationship('Project', back_populates='owner')
     project_memberships = relationship('ProjectMember', back_populates='user')
+
+    search_vector = mapped_column(TSVECTOR, nullable=True)
