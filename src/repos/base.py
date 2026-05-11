@@ -73,6 +73,8 @@ class BaseRepository[T]:
         return instance
 
     async def update(self, instance: T, data: dict) -> T:
+        instance = await self.session.merge(instance)
+
         for field, value in data.items():
             setattr(instance, field, value)
 
