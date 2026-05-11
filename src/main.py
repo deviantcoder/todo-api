@@ -25,17 +25,12 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
     yield
     await disconnect_redis()
 
-
-origins = [
-    'http://localhost'
-]
-
 app = FastAPI(**settings.fastapi_kwargs, lifespan=lifespan)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)  # type: ignore
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=settings.ALLOWED_ORIGINS,
     allow_methods=['*'],
     allow_headers=['*'],
     allow_credentials=True

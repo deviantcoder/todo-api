@@ -14,6 +14,10 @@ class Settings(BaseSettings):
     DESCRIPTION: str = 'FastAPI Todo API'
     VERSION: str = __version__
 
+    ALLOWED_ORIGINS: list = [
+        'http://localhost',
+    ]
+
     DATABASE_URL: str = 'sqlite+aiosqlite:///./todo.db'
     TEST_DATABASE_URL: str
     ALEMBIC_DATABASE_URL: str = 'sqlite:///./todo.db'
