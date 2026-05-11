@@ -1,7 +1,7 @@
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
-from fastapi import FastAPI
+from fastapi import FastAPI, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.requests import Request
 from fastapi.responses import JSONResponse
@@ -44,4 +44,26 @@ async def app_exception_handler(request: Request, exc: AppException) -> JSONResp
     return JSONResponse(
         status_code=exc.status_code,
         content={'detail': exc.detail}
+    )
+
+
+@app.get('/', tags=['system'])
+async def root() -> JSONResponse:
+    return JSONResponse(
+        status_code=status.HTTP_200_OK,
+        content={
+            'msg': f'Welcome to {settings.APP_TITLE}',
+            'docs': ['/docs', '/redoc'],
+        }
+    )
+
+@app.get('/health', tags=['system'])
+async def health_check() -> JSONResponse:
+    return JSONResponse(
+        status_code=status.HTTP_200_OK,
+        content={
+            'status': 'ok',
+            'version': settings.VERSION,
+            'app': settings.APP_TITLE,
+        }
     )
