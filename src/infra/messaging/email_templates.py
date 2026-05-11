@@ -71,3 +71,14 @@ def password_reset_email(username: str, reset_token: str) -> str:
         <hr>
         <p>If you did not request this, you can safely ignore this email.</p>
     '''
+
+def email_change_verification_email(username: str, new_email: str, token: str) -> str:
+    return f'''
+        <h2>Hi {username}, confirm your new email address.</h2>
+        <p>You requested to chage your email to <strong>{new_email}</strong></p>
+        <p>Use the token below to confirm. It expires in {settings.VERIFICATION_TOKEN_EXPIRE_MINUTES}.</p>
+        <hr>
+        <p><strong>{token}</strong></p>
+        <hr>
+        <p>If you did not request this, you can safely ignore this email.</p>
+    '''
