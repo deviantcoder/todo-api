@@ -37,5 +37,8 @@ class ChangeUsernameRequest(BaseModel):
 
 
 class ChangeEmailRequest(BaseModel):
-    password: str
     new_email: EmailStr = Field(..., max_length=200)
+
+
+class ConfirmEmailChangeRequest(BaseModel):
+    token: str
