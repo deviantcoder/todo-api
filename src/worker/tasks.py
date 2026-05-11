@@ -12,6 +12,7 @@ from src.infra.messaging.email_templates import (
     due_date_reminder_email,
     password_reset_email,
     welcome_email,
+    email_change_verification_email
 )
 from src.models.task import Task, TaskStatus
 from src.models.user import User
@@ -130,3 +131,12 @@ async def cleanup_refresh_tokens() -> None:
             )
         )
         await session.commit()
+
+@celery_app.task(name='src.worker.tasks.send_email_change_verification')
+@run_async
+async def send_email_change_verification(username: str, new_email: str, token: str) -> None:
+    await send_email(
+        subject='Confirm your new email address',
+        recipients=[new_email],
+        body=email_change_verification_email(username, new_email, token)
+    )
