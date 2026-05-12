@@ -10,7 +10,7 @@ from src.repos.base import BaseRepository
 
 class TaskRepository(BaseRepository[Task]):
     """
-    Task repository class
+    Repository for managing tasks.
     """
 
     model = Task
@@ -31,6 +31,16 @@ class TaskRepository(BaseRepository[Task]):
         limit: int,
         filters: dict[str, Any] | None = None
     ) -> tuple[list[Task], int]:
+        """
+        Retrieve a paginated list of tasks owned by a specific user.
+
+        Args:
+            user_id: ID (UUID) of the task owner.
+            offset: The number of records to skip.
+            limit: The maximum number of records to return.
+            filters: Optional dictionary of filters to apply.
+        """
+
         stmt = select(Task).where(Task.owner_id == user_id)
         return await self.get_paginated(stmt, offset, limit, filters)
 
@@ -41,6 +51,19 @@ class TaskRepository(BaseRepository[Task]):
         limit: int,
         filters: dict | None = None
     ) -> tuple[list[Task], int]:
+        """
+        Retrieve a paginated list of tasks accessible to a specific user.
+
+        A task is considered accessible if the user is either the owner or an
+        accepted member of the project the task belongs to.
+
+        Args:
+            user_id: ID (UUID) of the user.
+            offset: The number of records to skip.
+            limit: The maximum number of records to return.
+            filters: Optional dictionary of filters to apply.
+        """
+
         stmt = (
             select(Task)
             .outerjoin(ProjectMember, ProjectMember.project_id == Task.project_id)
@@ -56,6 +79,15 @@ class TaskRepository(BaseRepository[Task]):
         return await self.get_paginated(stmt, offset, limit, filters)
 
     async def search(self, query: str, user_id: UUID, limit: int = 10) -> list[Task]:
+        """
+        Search for accessible tasks using a full-text search query.
+
+        Args:
+            query: The search query string.
+            user_id: ID (UUID) of the user.
+            limit: The maximum number of results to return.
+        """
+
         tsquery = func.websearch_to_tsquery('english', query)
 
         inner = (

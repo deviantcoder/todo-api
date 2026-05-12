@@ -11,7 +11,7 @@ from src.repos.base import BaseRepository
 
 class ProjectRepository(BaseRepository[Project]):
     """
-    Project repository class
+    Repository for managing projects.
     """
 
     model = Project
@@ -30,6 +30,16 @@ class ProjectRepository(BaseRepository[Project]):
         limit: int,
         filters: dict[str, Any] | None = None
     ) -> tuple[list[Project], int]:
+        """
+        Retrieve a paginated list of projects owned by a specific user.
+
+        Args:
+            user_id: ID (UUID) of the project owner.
+            offset: The number of records to skip.
+            limit: The maximum number of records to return.
+            filters: Optional dictionary of filter parameters to apply.
+        """
+
         stmt = select(Project).where(Project.owner_id == user_id)
         return await self.get_paginated(stmt, offset, limit, filters)
 
@@ -40,6 +50,18 @@ class ProjectRepository(BaseRepository[Project]):
         limit: int,
         filters: dict[str, Any] | None = None
     ) -> tuple[list[dict], int]:
+        """
+        Retrieve a paginated list of projects accessible to a user.
+
+        A project is considered accessible if the user is either the owner or an accepted member.
+
+        Args:
+            user_id: ID (UUID) of the user whose accessible projects are being fetched.
+            offset: The number of records to skip.
+            limit: The maximum number of records to return.
+            filters: Optional dictionary of filters to apply.
+        """
+
         active_count = (
             select(func.count())
             .where(Task.project_id == Project.id, Task.status == TaskStatus.ACTIVE)
@@ -90,6 +112,13 @@ class ProjectRepository(BaseRepository[Project]):
         ], total
 
     async def get_task_counts(self, project_id: UUID) -> dict[str, int]:
+        """
+        Retrieve the count of active and completed tasks for a given project.
+
+        Args:
+            project_id: ID (UUID) of the project to count tasks for.
+        """
+
         counts = select(
             func.count().filter(Task.status == TaskStatus.ACTIVE).label('active'),
             func.count().filter(Task.status == TaskStatus.COMPLETED).label('completed')
@@ -101,6 +130,17 @@ class ProjectRepository(BaseRepository[Project]):
         return {'active': active, 'completed': completed}
 
     async def search(self, query: str, user_id: UUID, limit: int = 10) -> list[Project]:
+        """
+        Search for accessible projects using a full-text search query.
+
+        Only projects owned by or shared with the user (as an accepted member) are returned.
+
+        Args:
+            query: The search query string.
+            user_id: ID (UUID) of the user performing the search.
+            limit: The maximum number of results to return.
+        """
+
         tsquery = func.websearch_to_tsquery('english', query)
 
         inner = (
